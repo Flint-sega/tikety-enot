@@ -6,7 +6,8 @@
 (function () {
     'use strict';
     var ORDER = ['new', 'classic'];
-    var LABELS = { new: 'Ночь', classic: 'Классика' };
+    var EN = document.documentElement.lang === 'en';
+    var LABELS = EN ? { new: 'Night', classic: 'Classic' } : { new: 'Ночь', classic: 'Классика' };
 
     function current() {
         var value = document.documentElement.getAttribute('data-theme');
@@ -17,7 +18,9 @@
         var next = ORDER[(ORDER.indexOf(theme) + 1) % ORDER.length];
         document.querySelectorAll('#theme-toggle').forEach(function (button) {
             button.setAttribute('data-theme', theme);
-            button.setAttribute('title', 'Тема: ' + LABELS[theme] + ' — переключить на «' + LABELS[next] + '»');
+            button.setAttribute('title', EN
+                ? 'Theme: ' + LABELS[theme] + ' — switch to “' + LABELS[next] + '”'
+                : 'Тема: ' + LABELS[theme] + ' — переключить на «' + LABELS[next] + '»');
             var text = button.querySelector('[data-theme-label]');
             if (text) {
                 text.textContent = LABELS[theme];

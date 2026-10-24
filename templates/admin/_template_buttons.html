@@ -1,14 +1,14 @@
 <div id="template-panel" class="flex flex-wrap items-center gap-2">
-    <span class="hint">Шаблон:</span>
+    <span class="hint">{{ _("Шаблон:") }}</span>
     {% for template in templates %}
     <button type="button"
             data-template-fill
             data-title="{{ template.title_tpl }}"
             data-description="{{ template.description_tpl }}"
-            title="{{ 'Мой шаблон' if template.created_by == user_id else 'Общий шаблон' }}"
+            title="{{ _("Мой шаблон") if template.created_by == user_id else _("Общий шаблон") }}"
             class="chip">{% if template.created_by == user_id %}★ {% endif %}{{ template.name }}</button>
     {% else %}
-    <span class="hint">шаблонов пока нет —</span>
+    <span class="hint">{{ _("шаблонов пока нет —") }}</span>
     {% endfor %}
-    <a href="/templates#howto" class="link-btn">+ свой шаблон</a>
+    <a href="/templates#howto" class="link-btn">+ {{ _("свой шаблон") }}</a>
 </div>

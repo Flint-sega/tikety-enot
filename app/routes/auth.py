@@ -7,7 +7,8 @@
 неверные попытки в паузе получают 429 «Слишком много попыток…»; верный пароль
 в паузе проходит (перебор это не ослабляет, честного пользователя не запирает).
 Успех сбрасывает счётчик. Успешный вход ставит подписанную cookie сессии
-(HttpOnly, SameSite=Lax), ротирует CSRF-cookie и ведёт на «/».
+(HttpOnly, SameSite=Lax), ротирует CSRF-cookie, переносит личный язык
+(если выбран) в cookie panel-lang и ведёт на «/».
 """
 
 from fastapi import APIRouter, Depends, Request
@@ -30,16 +31,19 @@ from app.auth import (
     record_login_failure,
     reset_login_failures,
     safe_next_path,
+    set_language_cookie,
     set_session_cookie,
     templates,
     verify_password,
 )
 from app.db import get_session
+from app.i18n import N_, _
 from app.models import User
+from app.sync import user_language
 
 router = APIRouter()
 
-LOGIN_ERROR = "Неверный логин или пароль"
+LOGIN_ERROR = N_("Неверный логин или пароль")
 
 
 @router.get("/login")
@@ -94,15 +98,18 @@ async def login_submit(
             return _login_page(
                 request,
                 login=login_value,
-                error=THROTTLE_MESSAGE,
+                error=_(THROTTLE_MESSAGE),
                 next=next,
                 status_code=429,
             )
         record_login_failure(throttle_key)
-        return _login_page(request, login=login_value, error=LOGIN_ERROR, next=next)
+        return _login_page(request, login=login_value, error=_(LOGIN_ERROR), next=next)
     reset_login_failures(throttle_key)
     response = RedirectResponse(safe_next_path(next), status_code=303)
     set_session_cookie(response, user)
+    saved_lang = user_language(user.id)
+    if saved_lang:
+        set_language_cookie(response, saved_lang)
     response.set_cookie(
         CSRF_COOKIE,
         issue_csrf_token(),

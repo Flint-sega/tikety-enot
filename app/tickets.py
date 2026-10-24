@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 
 from app.clock import utcnow_naive
 from app.db import get_engine
+from app.i18n import N_, _, current_lang
 from app.models import Setting, Ticket, User
 
 PAGE_SIZE = 30
@@ -91,8 +92,8 @@ def _clean_optional(value: str | None) -> str | None:
 
 def create_ticket(title: str, description: str, planned_at: str | None, actor: User) -> Ticket:
     """Создать заявку с номером max+1, выданным в той же транзакции, что и INSERT."""
-    clean_title = _clean_required(title, "Укажите заголовок")
-    clean_description = _clean_required(description, "Укажите описание")
+    clean_title = _clean_required(title, _("Укажите заголовок"))
+    clean_description = _clean_required(description, _("Укажите описание"))
     clean_planned = _clean_optional(planned_at)
     for _attempt in range(NUMBER_ATTEMPTS):
         try:
@@ -120,9 +121,9 @@ def edit_ticket(ticket_id: int, fields: dict, actor: User) -> Ticket:
         if ticket is None:
             raise TicketNotFound(ticket_id)
         if "title" in fields:
-            ticket.title = _clean_required(fields["title"], "Укажите заголовок")
+            ticket.title = _clean_required(fields["title"], _("Укажите заголовок"))
         if "description" in fields:
-            ticket.description = _clean_required(fields["description"], "Укажите описание")
+            ticket.description = _clean_required(fields["description"], _("Укажите описание"))
         if "planned_at" in fields:
             ticket.planned_at = _clean_optional(fields["planned_at"])
         session.commit()
@@ -137,9 +138,9 @@ def close_ticket(ticket_id: int, comment: str | None, actor: User) -> Ticket:
         if ticket is None:
             raise TicketNotFound(ticket_id)
         if ticket.status == "closed":
-            raise ValueError("Заявка уже закрыта")
+            raise ValueError(_("Заявка уже закрыта"))
         if comment is not None and len(comment) > COMMENT_MAX_LENGTH:
-            raise ValueError(f"Комментарий длиннее {COMMENT_MAX_LENGTH} символов")
+            raise ValueError(_("Комментарий длиннее {n} символов", n=COMMENT_MAX_LENGTH))
         ticket.status = "closed"
         ticket.comment = _clean_optional(comment)
         ticket.closed_at = utcnow_naive()
@@ -156,7 +157,7 @@ def delete_ticket(ticket_id: int, actor: User) -> None:
     иначе поллер вечно перебирает мёртвый id.
     """
     if getattr(actor, "role", "") not in {"admin", "operator"}:
-        raise PermissionError("Удаление доступно администратору и оператору")
+        raise PermissionError(_("Удаление доступно администратору и оператору"))
     with Session(get_engine()) as session:
         ticket = session.get(Ticket, ticket_id)
         if ticket is None:
@@ -413,10 +414,10 @@ def summary() -> dict:
 
 URGENCY_SOON = timedelta(hours=24)
 URGENCY_GROUPS = (
-    ("overdue", "Просрочено"),
-    ("soon", "Ближайшие 24 часа"),
-    ("later", "Позже"),
-    (None, "Без срока"),
+    ("overdue", N_("Просрочено")),
+    ("soon", N_("Ближайшие 24 часа")),
+    ("later", N_("Позже")),
+    (None, N_("Без срока")),
 )
 
 
@@ -448,7 +449,7 @@ def planned_urgency(planned_at: str | None, now_msk: datetime) -> str | None:
     window = _planned_window(planned_at)
     if window is None:
         return None
-    start, end, _ = window
+    start, end, __ = window
     if end < now_msk:
         return "overdue"
     if start <= now_msk + URGENCY_SOON:
@@ -461,14 +462,16 @@ def relative_label(moment: datetime, now_msk: datetime) -> str:
     seconds = (moment - now_msk).total_seconds()
     minutes = round(abs(seconds) / 60)
     if minutes < 1:
-        return "сейчас"
+        return _("сейчас")
     if minutes < 60:
-        amount = f"{minutes} мин"
+        amount = _("{n} мин", n=minutes)
     elif minutes < 48 * 60:
-        amount = f"{round(minutes / 60)} ч"
+        amount = _("{n} ч", n=round(minutes / 60))
     else:
-        amount = f"{round(minutes / 1440)} дн"
-    return f"через {amount}" if seconds > 0 else f"{amount} назад"
+        amount = _("{n} дн", n=round(minutes / 1440))
+    if seconds > 0:
+        return _("через {amount}", amount=amount)
+    return _("{amount} назад", amount=amount)
 
 
 def short_planned(planned_at: str | None, now_msk: datetime) -> str:
@@ -501,9 +504,9 @@ def planned_view(planned_at: str | None, now_msk: datetime) -> dict:
     if window is not None:
         start, end, has_time = window
         if urgency == "overdue":
-            relative = relative_label(end, now_msk) if has_time else "день прошёл"
+            relative = relative_label(end, now_msk) if has_time else _("день прошёл")
         elif start <= now_msk <= end:
-            relative = "идёт сейчас" if has_time else "сегодня"
+            relative = _("идёт сейчас") if has_time else _("сегодня")
         elif has_time:
             relative = relative_label(start, now_msk)
     return {
@@ -526,11 +529,11 @@ def group_open_tickets(tickets: list[Ticket], now_msk: datetime) -> list[dict]:
     Порядок: Просрочено → Ближайшие 24 часа → Позже → Без срока; пустые группы
     не возвращаются. Без срока — новые сверху (по номеру вниз).
     """
-    buckets: dict[str | None, list[Ticket]] = {key: [] for key, _ in URGENCY_GROUPS}
+    buckets: dict[str | None, list[Ticket]] = {key: [] for key, __ in URGENCY_GROUPS}
     for ticket in sorted(tickets, key=_urgency_sort_key):
         buckets[planned_urgency(ticket.planned_at, now_msk)].append(ticket)
     return [
-        {"key": key or "none", "title": title, "items": buckets[key]}
+        {"key": key or "none", "title": _(title), "items": buckets[key]}
         for key, title in URGENCY_GROUPS
         if buckets[key]
     ]
@@ -572,23 +575,34 @@ def open_overview(now_msk: datetime | None = None) -> dict:
     return {"open": len(tickets), "overdue": overdue, "next_due": next_due}
 
 
+MONTHS_GENITIVE = (
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря",
+)
+MONTHS_EN = (
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)
+
+
 def closed_day_label(closed_at: datetime | None, now_msk: datetime) -> str:
     """Заголовок группы истории по МСК-дню закрытия: «Сегодня, 19 октября»."""
     if closed_at is None:
-        return "Без даты закрытия"
+        return _("Без даты закрытия")
     day = (closed_at + timedelta(hours=3)).date()
-    months = (
-        "января", "февраля", "марта", "апреля", "мая", "июня",
-        "июля", "августа", "сентября", "октября", "ноября", "декабря",
-    )
-    text = f"{day.day} {months[day.month - 1]}"
-    if day.year != now_msk.year:
-        text += f" {day.year}"
+    if current_lang() == "en":
+        text = f"{MONTHS_EN[day.month - 1]} {day.day}"
+        if day.year != now_msk.year:
+            text += f", {day.year}"
+    else:
+        text = f"{day.day} {MONTHS_GENITIVE[day.month - 1]}"
+        if day.year != now_msk.year:
+            text += f" {day.year}"
     delta = (now_msk.date() - day).days
     if delta == 0:
-        return f"Сегодня, {text}"
+        return _("Сегодня, {day}", day=text)
     if delta == 1:
-        return f"Вчера, {text}"
+        return _("Вчера, {day}", day=text)
     return text
 
 

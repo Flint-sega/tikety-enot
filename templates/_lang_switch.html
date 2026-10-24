@@ -1,0 +1,10 @@
+{# Переключатель языка: кнопка другого языка (RU/EN или полное имя при full_label); button_class задаёт вид.
+   Подписи — на своём языке, поэтому без _(). #}
+{% set other = 'ru' if lang == 'en' else 'en' %}
+<form method="post" action="/lang" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="lang" value="{{ other }}">
+    <input type="hidden" name="next" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+    <button type="submit" class="{{ button_class or 'btn btn-ghost btn-sm' }}" lang="{{ other }}"
+            title="{{ 'Переключить на русский' if other == 'ru' else 'Switch to English' }}">{% if full_label %}{{ 'Русский' if other == 'ru' else 'English' }}{% else %}{{ 'RU' if other == 'ru' else 'EN' }}{% endif %}</button>
+</form>

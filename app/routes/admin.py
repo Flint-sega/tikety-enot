@@ -50,6 +50,7 @@ from sqlalchemy.orm import Session
 from app.auth import current_user, current_user_dependency, parse_form, require, templates
 from app.clock import utcnow_naive
 from app.db import get_engine, get_session
+from app.i18n import LANG_LABELS, LANGS, N_, SETTING_DEFAULT_LANGUAGE, _, default_language
 from app.models import Template, User
 from app.routes.templates import render_templates_page
 from app.sync import (
@@ -105,38 +106,47 @@ router = APIRouter()
 MSK_SHIFT = timedelta(hours=3)
 
 FEATURES = (
-    (SETTING_USEDESK_ENABLED, "UseDesk", "Синк заявок с UseDesk: поллер и исходящие"),
-    (SETTING_TELEGRAM_ENABLED, "Телеграм", "Сообщения в группу о новых и закрытых заявках"),
-    (SETTING_TEMPLATES_ENABLED, "Шаблоны заявок", "Кнопки шаблонов на форме создания заявки"),
+    (SETTING_USEDESK_ENABLED, "UseDesk", N_("Синк заявок с UseDesk: поллер и исходящие")),
+    (
+        SETTING_TELEGRAM_ENABLED,
+        N_("Телеграм"),
+        N_("Сообщения в группу о новых и закрытых заявках"),
+    ),
+    (
+        SETTING_TEMPLATES_ENABLED,
+        N_("Шаблоны заявок"),
+        N_("Кнопки шаблонов на форме создания заявки"),
+    ),
     (
         SETTING_HISTORY_GROUPED,
-        "История по дням",
-        "Группировать закрытые заявки по дню закрытия (Сегодня, Вчера, …)",
+        N_("История по дням"),
+        N_("Группировать закрытые заявки по дню закрытия (Сегодня, Вчера, …)"),
     ),
 )
 # Тумблер секции «Внешний вид» — тот же механизм /admin/features/{key}.
 APPEARANCE_FEATURES = (
     (
         SETTING_PERSONAL_APPEARANCE,
-        "Разрешить менять вид индивидуально",
-        "Каждый выбирает тему и форму у себя в профиле; выкл — у всех вид по умолчанию",
+        N_("Разрешить менять вид индивидуально"),
+        N_("Каждый выбирает тему и форму у себя в профиле; выкл — у всех вид по умолчанию"),
     ),
 )
-FEATURE_KEYS = frozenset(key for key, _, _ in FEATURES + APPEARANCE_FEATURES)
+FEATURE_KEYS = frozenset(key for key, __, ___ in FEATURES + APPEARANCE_FEATURES)
 FEATURE_DEFAULTS = {SETTING_PERSONAL_APPEARANCE: "1"}
 
 # «Добавить примеры» в секции «Шаблоны заявок»: {…} — подстановка, её выделяет форма.
+# Примеры создаются на языке админа, нажавшего кнопку.
 EXAMPLE_TEMPLATES = (
-    ("Обновление базы", "Обновить {база}", "на крайний релиз, сначала бэкап"),
+    (N_("Обновление базы"), N_("Обновить {база}"), N_("на крайний релиз, сначала бэкап")),
     (
-        "Релиз в хранилище",
-        "Релиз {база} в хранилище",
-        "релиз {номер релиза} положить в хранилище и обновить",
+        N_("Релиз в хранилище"),
+        N_("Релиз {база} в хранилище"),
+        N_("релиз {номер релиза} положить в хранилище и обновить"),
     ),
     (
-        "Проверка доступов",
-        "Проверить доступы {база}",
-        "клиент прислал новые доступы — проверить вход и записать в карточку",
+        N_("Проверка доступов"),
+        N_("Проверить доступы {база}"),
+        N_("клиент прислал новые доступы — проверить вход и записать в карточку"),
     ),
 )
 
@@ -179,15 +189,15 @@ def _telegram_probe_client(token: str) -> TelegramClient:
 
 def _mask_secret(value: str) -> str:
     """Маска для страницы: последние 4 символа значения; пустое — «не задан»."""
-    return f"••••{value[-4:]}" if value else "не задан"
+    return f"••••{value[-4:]}" if value else _("не задан")
 
 
 def _feature_views(features=FEATURES) -> list[dict]:
     return [
         {
             "key": key,
-            "label": label,
-            "hint": hint,
+            "label": _(label),
+            "hint": _(hint),
             "on": get_setting(key, FEATURE_DEFAULTS.get(key, "0")) == "1",
         }
         for key, label, hint in features
@@ -205,8 +215,9 @@ def _feature_view(key: str) -> dict:
 def _moment_label(moment) -> str:
     """naive-UTC -> «дд.мм.гггг чч:мм МСК (N мин назад)»; None -> «ещё не было»."""
     if moment is None:
-        return "ещё не было"
-    return f"{format_msk(moment)} МСК ({relative_label(moment + MSK_SHIFT, msk_now())})"
+        return _("ещё не было")
+    relative = relative_label(moment + MSK_SHIFT, msk_now())
+    return _("{at} МСК ({relative})", at=format_msk(moment), relative=relative)
 
 
 def _sync_view() -> dict:
@@ -214,7 +225,7 @@ def _sync_view() -> dict:
     return {
         "last_poll": _moment_label(status["last_poll"]),
         "watermark": _moment_label(status["watermark"]),
-        "last_error_at": format_msk(status["last_error_at"]) + " МСК"
+        "last_error_at": _("{at} МСК", at=format_msk(status["last_error_at"]))
         if status["last_error_at"]
         else "",
     }
@@ -241,6 +252,8 @@ def _admin_context(**extra: object) -> dict:
         "user": None,
         "tab": "admin",
         "theme_default": default_theme(),
+        "language_default": default_language(),
+        "language_choices": [(code, LANG_LABELS[code]) for code in LANGS],
         "sync": sync_status(),
         "templates_on": get_setting(SETTING_TEMPLATES_ENABLED, "0") == "1",
         "usedesk_token_mask": _mask_secret(usedesk_api_token()),
@@ -256,6 +269,7 @@ def _admin_context(**extra: object) -> dict:
         "mapping_error": None,
         "theme_error": None,
         "shape_error": None,
+        "language_error": None,
         "tokens_error": None,
         "usedesk_result": None,
         "telegram_result": None,
@@ -286,7 +300,7 @@ def admin_page(
 @router.post("/admin/features/{key}", dependencies=[require("admin")])
 async def toggle_feature(key: str, request: Request):
     if key not in FEATURE_KEYS:
-        return HTMLResponse("Неизвестная функция", status_code=404)
+        return HTMLResponse(_("Неизвестная функция"), status_code=404)
     form = await parse_form(request)
     set_setting(key, "1" if form.get("value") == "1" else "0")
     if request.headers.get("HX-Request"):
@@ -312,9 +326,25 @@ async def save_default_theme(request: Request):
     if value not in VALID_THEMES:
         return _admin_page(
             request,
-            theme_error="Неизвестная тема: выберите «Ночь» или «Классика»",
+            theme_error=_("Неизвестная тема: выберите «Ночь» или «Классика»"),
         )
     set_setting(SETTING_DEFAULT_THEME, value)
+    return RedirectResponse("/admin", status_code=303)
+
+
+# --- язык по умолчанию: вход, Телеграм и UseDesk ---
+
+
+@router.post("/admin/settings/language-default", dependencies=[require("admin")])
+async def save_default_language(request: Request):
+    """Язык для страницы входа без cookie panel-lang и для сообщений поллера."""
+    form = await parse_form(request)
+    value = form.get("value", "").strip()
+    if value not in LANGS:
+        return _admin_page(
+            request, language_error=_("Неизвестный язык: выберите русский или английский")
+        )
+    set_setting(SETTING_DEFAULT_LANGUAGE, value)
     return RedirectResponse("/admin", status_code=303)
 
 
@@ -333,7 +363,7 @@ async def save_shapes(request: Request):
     button = form.get("button_shape", "").strip()
     if card not in VALID_SHAPES or button not in VALID_SHAPES:
         return _admin_page(
-            request, shape_error="Неизвестная форма: выберите «Круглые» или «Прямоугольные»"
+            request, shape_error=_("Неизвестная форма: выберите «Круглые» или «Прямоугольные»")
         )
     set_setting(SETTING_CARD_SHAPE, card)
     set_setting(SETTING_BUTTON_SHAPE, button)
@@ -351,7 +381,7 @@ def _validate_chat_id(value: str) -> str | None:
     """TELEGRAM_CHAT_ID — число (id группы, бывает отрицательным) или @имя_канала."""
     if not value or CHAT_ID_GROUP_RE.fullmatch(value) or CHAT_ID_CHANNEL_RE.fullmatch(value):
         return None
-    return "TELEGRAM_CHAT_ID: укажите число (id группы, например -1001234567890) или @имя_канала"
+    return _("TELEGRAM_CHAT_ID: укажите число (id группы, например -1001234567890) или @имя_канала")
 
 
 @router.post("/admin/settings/tokens", dependencies=[require("admin")])
@@ -395,10 +425,10 @@ def _validate_mapping(status_closed: str, closed_statuses: str) -> str | None:
     # isdecimal, а не isdigit: «²» проходит isdigit, но int() бросает ValueError
     # и роняет поллер на каждом цикле (ревью C1).
     if not status_closed.isdecimal():
-        return "Статус закрытия — число-id UseDesk (по умолчанию 2 «Выполнен»)"
+        return _("Статус закрытия — число-id UseDesk (по умолчанию 2 «Выполнен»)")
     parts = [part.strip() for part in closed_statuses.split(",")]
     if not closed_statuses or any(not part.isdecimal() for part in parts):
-        return "Закрытые статусы — числа-id через запятую (по умолчанию 2,3,4,7,10)"
+        return _("Закрытые статусы — числа-id через запятую (по умолчанию 2,3,4,7,10)")
     return None
 
 
@@ -450,7 +480,9 @@ async def create_example_templates(request: Request):
         if session.scalar(select(Template.id).limit(1)) is None:
             for name, title_tpl, description_tpl in EXAMPLE_TEMPLATES:
                 session.add(
-                    Template(name=name, title_tpl=title_tpl, description_tpl=description_tpl)
+                    Template(
+                        name=_(name), title_tpl=_(title_tpl), description_tpl=_(description_tpl)
+                    )
                 )
             session.commit()
     set_setting(SETTING_TEMPLATES_ENABLED, "1")
@@ -466,7 +498,7 @@ def edit_template_page(
 ):
     template = session.get(Template, template_id)
     if template is None or not _admin_may_touch(template, admin):
-        return HTMLResponse("Шаблон не найден", status_code=404)
+        return HTMLResponse(_("Шаблон не найден"), status_code=404)
     return templates.TemplateResponse(
         request,
         "admin/template_edit.html",
@@ -480,7 +512,7 @@ async def edit_template(
 ):
     template = session.get(Template, template_id)
     if template is None or not _admin_may_touch(template, _request_user(request)):
-        return HTMLResponse("Шаблон не найден", status_code=404)
+        return HTMLResponse(_("Шаблон не найден"), status_code=404)
     form = await parse_form(request)
     fields = template_fields(form)
     error = validate_template(fields)
@@ -556,7 +588,7 @@ def _export_rows(status: str, query: str) -> list[dict]:
             "title": ticket.title,
             "description": ticket.description,
             "planned_at": ticket.planned_at or "",
-            "status": "закрыта" if ticket.status == "closed" else "открыта",
+            "status": _("закрыта") if ticket.status == "closed" else _("открыта"),
             "comment": ticket.comment or "",
             "created_at": format_msk(ticket.created_at),
             "created_by": logins.get(ticket.created_by, ""),
@@ -607,32 +639,32 @@ async def reset_error_counter(request: Request):
 def _run_usedesk_probe() -> tuple[bool, str]:
     token = usedesk_api_token()
     if not token:
-        return False, "Токен не задан"
+        return False, _("Токен не задан")
     client = _usedesk_probe_client(token)
     try:
         client.list_updated(utcnow_naive())
     except UsedeskError as error:
-        return False, f"Ошибка: {sanitize_secret_text(str(error), token)}"
+        return False, _("Ошибка: {text}", text=sanitize_secret_text(str(error), token))
     finally:
         client.close()
-    return True, "Подключение ок — UseDesk отвечает"
+    return True, _("Подключение ок — UseDesk отвечает")
 
 
 def _run_telegram_probe() -> tuple[bool, str]:
     token = telegram_bot_token()
     chat_id = telegram_chat_id()
     if not token:
-        return False, "Токен не задан"
+        return False, _("Токен не задан")
     if not chat_id:
-        return False, "Не задан chat_id группы (TELEGRAM_CHAT_ID или «Ключи и функции»)"
+        return False, _("Не задан chat_id группы (TELEGRAM_CHAT_ID или «Ключи и функции»)")
     client = _telegram_probe_client(token)
     try:
-        client.send_message(chat_id, "Тестовое сообщение из панели «Тикеты Енот».")
+        client.send_message(chat_id, _("Тестовое сообщение из панели «Тикеты Енот»."))
     except TelegramError as error:
-        return False, f"Ошибка: {sanitize_secret_text(str(error), token)}"
+        return False, _("Ошибка: {text}", text=sanitize_secret_text(str(error), token))
     finally:
         client.close()
-    return True, "Тестовое сообщение отправлено"
+    return True, _("Тестовое сообщение отправлено")
 
 
 def _diagnostic_response(request: Request, name: str, label: str, ok: bool, text: str):
@@ -648,11 +680,11 @@ def _diagnostic_response(request: Request, name: str, label: str, ok: bool, text
 async def test_usedesk(request: Request):
     await parse_form(request)
     ok, text = _run_usedesk_probe()
-    return _diagnostic_response(request, "usedesk", "Тест UseDesk", ok, text)
+    return _diagnostic_response(request, "usedesk", _("Тест UseDesk"), ok, text)
 
 
 @router.post("/admin/diagnostics/test-telegram", dependencies=[require("admin")])
 async def test_telegram(request: Request):
     await parse_form(request)
     ok, text = _run_telegram_probe()
-    return _diagnostic_response(request, "telegram", "Тестовое сообщение", ok, text)
+    return _diagnostic_response(request, "telegram", _("Тестовое сообщение"), ok, text)

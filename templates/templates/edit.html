@@ -1,37 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Шаблон «{{ template.name }}» — Тикеты Енот{% endblock %}
+{% block title %}{{ _("Шаблон «{name}»", name=template.name) }} — {{ _("Тикеты Енот") }}{% endblock %}
 {% block content %}
 <div class="page-panel form-card">
     <div class="flex flex-wrap items-center justify-between gap-2">
-        <h1 class="text-lg font-semibold">Шаблон «{{ template.name }}»</h1>
-        <a href="/templates" class="text-sm text-slate-500 hover:text-slate-700">&larr; К шаблонам</a>
+        <h1 class="text-lg font-semibold">{{ _("Шаблон «{name}»", name=template.name) }}</h1>
+        <a href="/templates" class="text-sm text-slate-500 hover:text-slate-700">&larr; {{ _("К шаблонам") }}</a>
     </div>
     {% if error %}<p class="alert mt-3">{{ error }}</p>{% endif %}
     <form method="post" action="/templates/{{ template.id }}/edit" class="mt-4 space-y-4" data-hotkey-submit>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div>
-            <label for="tpl-name" class="lbl">Название кнопки</label>
+            <label for="tpl-name" class="lbl">{{ _("Название кнопки") }}</label>
             <input id="tpl-name" name="name" value="{{ template.name }}" maxlength="128" class="field">
         </div>
         <div>
-            <label for="tpl-title" class="lbl">Заголовок заявки</label>
+            <label for="tpl-title" class="lbl">{{ _("Заголовок заявки") }}</label>
             <input id="tpl-title" name="title_tpl" value="{{ template.title_tpl }}" class="field">
         </div>
         <div>
-            <label for="tpl-description" class="lbl">Описание заявки</label>
+            <label for="tpl-description" class="lbl">{{ _("Описание заявки") }}</label>
             <textarea id="tpl-description" name="description_tpl" rows="4" class="field">{{ template.description_tpl }}</textarea>
         </div>
         {% if template.created_by == user.id %}
         <label class="flex items-center gap-2 text-sm">
             <input type="checkbox" name="shared" value="1"{% if template.is_shared %} checked{% endif %}>
-            Показывать всем (иначе — только мне)
+            {{ _("Показывать всем (иначе — только мне)") }}
         </label>
         {% else %}
-        <p class="hint">Общий шаблон{% if template.created_by is none %} (без автора){% endif %} — видят все.</p>
+        <p class="hint">{{ _("Общий шаблон") }}{% if template.created_by is none %} {{ _("(без автора)") }}{% endif %} — {{ _("видят все.") }}</p>
         {% endif %}
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="btn btn-blue">Сохранить</button>
-            <a href="/templates" class="btn btn-ghost">Отмена</a>
+            <button type="submit" class="btn btn-blue">{{ _("Сохранить") }}</button>
+            <a href="/templates" class="btn btn-ghost">{{ _("Отмена") }}</a>
         </div>
     </form>
 </div>

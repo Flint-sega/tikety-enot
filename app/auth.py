@@ -9,7 +9,7 @@
 - parse_form(request) — разбор urlencoded-форм без python-multipart (stdlib)
   с проверкой CSRF внутри: токен из скрытого поля или заголовка X-CSRF-Token
   сверяется с cookie CSRF_COOKIE, несовпадение — CsrfError (403);
-- PanelTemplates — рендер с автоподстановкой csrf_token в контекст страницы;
+- PanelTemplates — рендер с автоподстановкой csrf_token и языка (lang, `_`) в контекст страницы;
 - троттлинг входа: login_is_blocked/record_login_failure/reset_login_failures
   по паре (логин, request.client.host) в памяти процесса, X-Forwarded-For не
   читается; client_ip(request) — единственный источник IP;
@@ -39,6 +39,7 @@ from starlette.responses import Response
 
 from app.config import Settings, get_settings
 from app.db import get_engine, get_session
+from app.i18n import LANG_COOKIE, LANG_COOKIE_MAX_AGE, N_, _, current_lang, gettext
 from app.models import User
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,7 @@ class PanelTemplates(Jinja2Templates):
         token, fresh_cookie = ensure_csrf_token(request)
         merged = dict(context or {})
         merged.setdefault("csrf_token", token)
+        merged.setdefault("lang", current_lang())
         common = global_appearance()
         merged.setdefault("theme_default", common["theme"])
         merged.setdefault("card_shape", common["card_shape"])
@@ -98,24 +100,25 @@ class PanelTemplates(Jinja2Templates):
 
 
 templates = PanelTemplates(directory=str(BASE_DIR / "templates"))
+templates.env.globals["_"] = gettext
 
 SESSION_COOKIE = "session"
 SESSION_MAX_AGE = 7 * 24 * 3600
 SESSION_SALT = "tikety.session.v1"
 BCRYPT_ROUNDS = 12
 PASSWORD_MAX_BYTES = 72
-PASSWORD_TOO_LONG_MESSAGE = f"Пароль не может быть длиннее {PASSWORD_MAX_BYTES} байт"
+PASSWORD_TOO_LONG_MESSAGE = N_("Пароль не может быть длиннее 72 байт")
 ROLE_LEVEL = {"operator": 1, "admin": 2}
 
 CSRF_COOKIE = "csrf_token"
 CSRF_FIELD = "csrf_token"
 CSRF_HEADER = "X-CSRF-Token"
 CSRF_SALT = "tikety.csrf.v1"
-CSRF_ERROR_MESSAGE = "Сессия формы истекла: обновите страницу и попробуйте снова"
+CSRF_ERROR_MESSAGE = N_("Сессия формы истекла: обновите страницу и попробуйте снова")
 
 LOGIN_THROTTLE_LIMIT = 5
 LOGIN_THROTTLE_PAUSE_SECONDS = 60
-THROTTLE_MESSAGE = "Слишком много попыток входа. Подождите минуту и попробуйте снова."
+THROTTLE_MESSAGE = N_("Слишком много попыток входа. Подождите минуту и попробуйте снова.")
 
 SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
@@ -150,7 +153,7 @@ def password_length_error(password: str) -> str | None:
     """
 
     if len(password.encode("utf-8")) > PASSWORD_MAX_BYTES:
-        return PASSWORD_TOO_LONG_MESSAGE
+        return _(PASSWORD_TOO_LONG_MESSAGE)
     return None
 
 
@@ -163,7 +166,7 @@ def password_rule_error(password: str) -> str | None:
     Первый админ из .env (bootstrap_admin) этим правилом не проверяется.
     """
     if len(password) < PASSWORD_MIN_LENGTH:
-        return f"Пароль короче {PASSWORD_MIN_LENGTH} символов"
+        return _("Пароль короче {n} символов", n=PASSWORD_MIN_LENGTH)
     return password_length_error(password)
 
 
@@ -173,6 +176,19 @@ def set_session_cookie(response: Response, user: User) -> None:
         SESSION_COOKIE,
         issue_session_token(user),
         max_age=SESSION_MAX_AGE,
+        httponly=True,
+        samesite="lax",
+        secure=_cookie_secure(),
+        path="/",
+    )
+
+
+def set_language_cookie(response: Response, lang: str) -> None:
+    """Cookie языка интерфейса (переключатель RU/EN и вход с сохранённым выбором)."""
+    response.set_cookie(
+        LANG_COOKIE,
+        lang,
+        max_age=LANG_COOKIE_MAX_AGE,
         httponly=True,
         samesite="lax",
         secure=_cookie_secure(),
@@ -466,17 +482,17 @@ async def _access_denied_handler(request: Request, exc: AccessDenied) -> Respons
 
 
 async def _csrf_error_handler(request: Request, __: CsrfError) -> Response:
-    return HTMLResponse(CSRF_ERROR_MESSAGE, status_code=403)
+    return HTMLResponse(_(CSRF_ERROR_MESSAGE), status_code=403)
 
 
-async def _malformed_body_handler(_: Request, __: MalformedBodyError) -> Response:
-    return HTMLResponse("Некорректное тело запроса", status_code=400)
+async def _malformed_body_handler(__: Request, ___: MalformedBodyError) -> Response:
+    return HTMLResponse(_("Некорректное тело запроса"), status_code=400)
 
 
-async def _overflow_handler(_: Request, __: OverflowError) -> Response:
+async def _overflow_handler(__: Request, ___: OverflowError) -> Response:
     # Числовой мусор вне диапазона SQLite INTEGER в path/?q — это «не найдено»,
     # а не падение процесса (ревью SEC-101).
-    return HTMLResponse("Страница не найдена", status_code=404)
+    return HTMLResponse(_("Страница не найдена"), status_code=404)
 
 
 def register_auth(app: FastAPI) -> None:

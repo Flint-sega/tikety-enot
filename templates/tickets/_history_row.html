@@ -1,27 +1,27 @@
 {% set t = card.ticket %}
 <div class="hist-row" data-ticket-id="{{ t.id }}" data-status="{{ t.status }}">
-    <span class="num num-green">№{{ t.number }}</span>
+    <span class="num num-green">{{ _("№") }}{{ t.number }}</span>
     <div class="hist-main">
         <span class="hist-title">{{ t.title }}</span>
-        <span class="hist-comment">· {% if t.comment %}«{{ t.comment }}»{% else %}без комментария{% endif %}</span>
+        <span class="hist-comment">· {% if t.comment %}{{ _("«{text}»", text=t.comment) }}{% else %}{{ _("без комментария") }}{% endif %}</span>
     </div>
-    <span class="hist-meta" title="Закрыта (МСК){% if card.planned.label %}; план {{ card.planned.label }}{% endif %}">
+    <span class="hist-meta" title="{{ _("Закрыта (МСК)") }}{% if card.planned.label %}; {{ _("план {label}", label=card.planned.label) }}{% endif %}">
         {{ card.closed_at_msk }}{% if card.closed_by_login %} · {{ card.closed_by_login }}{% endif %}
     </span>
     <span class="hist-actions">
-        <button type="button" class="btn-icon" title="Показать полностью" aria-label="Показать заявку №{{ t.number }} полностью" data-modal-open
+        <button type="button" class="btn-icon" title="{{ _("Показать полностью") }}" aria-label="{{ _("Показать заявку №{n} полностью", n=t.number) }}" data-modal-open
                 hx-get="/tickets/{{ t.id }}/full" hx-target="#modal-content" hx-swap="innerHTML">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12c2.5-4.5 5.5-6.5 9-6.5s6.5 2 9 6.5c-2.5 4.5-5.5 6.5-9 6.5S5.5 16.5 3 12Z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
-        <a href="/templates?from={{ t.id }}#create" class="btn-icon" title="Сохранить как шаблон" aria-label="Сохранить заявку №{{ t.number }} как шаблон">
+        <a href="/templates?from={{ t.id }}#create" class="btn-icon" title="{{ _("Сохранить как шаблон") }}" aria-label="{{ _("Сохранить заявку №{n} как шаблон", n=t.number) }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 4h9l3 3v13H6z" stroke-linejoin="round"/><path d="M9 4v5h6V4M9 14h6M9 17h4" stroke-linecap="round"/></svg>
         </a>
-        <a href="/tickets/new?from={{ t.id }}" class="btn-icon" title="Повторить заявку" aria-label="Повторить заявку №{{ t.number }}">
+        <a href="/tickets/new?from={{ t.id }}" class="btn-icon" title="{{ _("Повторить заявку") }}" aria-label="{{ _("Повторить заявку №{n}", n=t.number) }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
         </a>
-        <form method="post" action="/tickets/{{ t.id }}/delete" data-confirm="Удалить заявку №{{ t.number }} безвозвратно?">
+        <form method="post" action="/tickets/{{ t.id }}/delete" data-confirm="{{ _("Удалить заявку №{n} безвозвратно?", n=t.number) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="btn-icon btn-icon-danger" title="Удалить" aria-label="Удалить заявку №{{ t.number }}">
+            <button type="submit" class="btn-icon btn-icon-danger" title="{{ _("Удалить") }}" aria-label="{{ _("Удалить заявку №{n}", n=t.number) }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6.5 7l1 12.5h9L17.5 7M9.5 7V4.5h5V7" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
         </form>

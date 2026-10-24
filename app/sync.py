@@ -61,6 +61,16 @@ from sqlalchemy.orm.attributes import set_committed_value
 from app.clock import utcnow_naive
 from app.config import get_settings
 from app.db import get_engine
+from app.i18n import (
+    FALLBACK_LANG,
+    N_,
+    SETTING_DEFAULT_LANGUAGE,
+    _,
+    default_language,
+    normalize_lang,
+    reset_lang,
+    set_lang,
+)
 from app.models import Setting, Ticket
 from app.telegram import TelegramClient, TelegramError
 from app.tickets import NUMBER_ATTEMPTS, TicketNotFound, user_login_map
@@ -113,7 +123,7 @@ SETTING_SYNC_ERROR_COUNT = "sync_error_count"
 DEFAULT_CLOSED_STATUS_ID = 2
 DEFAULT_CLOSED_STATUSES = "2,3,4,7,10"
 
-PANEL_NAME = "Тикеты Енот"
+PANEL_NAME = N_("Тикеты Енот")
 
 
 @dataclass(frozen=True)
@@ -135,6 +145,7 @@ def default_settings() -> dict[str, str]:
         SETTING_DEFAULT_THEME: FALLBACK_THEME,
         SETTING_HISTORY_GROUPED: "0",
         SETTING_PERSONAL_APPEARANCE: "1",
+        SETTING_DEFAULT_LANGUAGE: FALLBACK_LANG,
         **SHAPE_DEFAULTS,
         SETTING_USEDESK_API_TOKEN: "",
         SETTING_TELEGRAM_BOT_TOKEN: "",
@@ -219,22 +230,30 @@ def set_user_appearance(user_id: int, values: dict[str, str]) -> str | None:
     """Сохранить личный вид; вернуть русскую ошибку при мусоре (тогда ничего не пишется)."""
     clean = {key: (values.get(key) or "").strip() for key in APPEARANCE_KEYS if key in values}
     if not clean:
-        return "Нечего сохранять"
+        return _("Нечего сохранять")
     for key, value in clean.items():
         if not _valid_appearance(key, value):
-            return "Неизвестное значение внешнего вида"
+            return _("Неизвестное значение внешнего вида")
     for key, value in clean.items():
         set_setting(_user_pref_key(user_id, key), value)
     return None
 
 
 def reset_user_appearance(user_id: int) -> None:
-    """«Как у всех»: удалить личные ключи — дальше действует вид админа."""
+    """«Как у всех»: удалить личные ключи вида — дальше действует вид админа (язык остаётся)."""
+    keys = [_user_pref_key(user_id, key) for key in APPEARANCE_KEYS]
     with Session(get_engine()) as session:
-        session.query(Setting).filter(
-            Setting.key.startswith(f"{USER_PREF_PREFIX}{user_id}:")
-        ).delete(synchronize_session=False)
+        session.query(Setting).filter(Setting.key.in_(keys)).delete(synchronize_session=False)
         session.commit()
+
+
+def user_language(user_id: int) -> str | None:
+    """Личный язык (user_pref:{id}:lang); не выбран или мусор — None."""
+    return normalize_lang(get_setting(_user_pref_key(user_id, "lang")))
+
+
+def set_user_language(user_id: int, lang: str) -> None:
+    set_setting(_user_pref_key(user_id, "lang"), lang)
 
 
 def get_setting(key: str, default: str = "") -> str:
@@ -455,8 +474,19 @@ def enqueue(ticket_id: int, events: set[str]) -> None:
 
 
 def poll_once() -> SyncStats:
-    """Один цикл: (1) исходящие pending, (2) входящие UseDesk с watermark."""
+    """Один цикл: (1) исходящие pending, (2) входящие UseDesk с watermark.
+
+    Сообщения в Телеграм и UseDesk — на языке по умолчанию из админки.
+    """
     ensure_default_settings()
+    token = set_lang(default_language())
+    try:
+        return _poll_once()
+    finally:
+        reset_lang(token)
+
+
+def _poll_once() -> SyncStats:
     usedesk = _usedesk_client()
     telegram = _telegram_client()
     usedesk_on = (
@@ -496,7 +526,7 @@ def sync_status() -> dict:
             return None
 
     last_error_raw = get_setting(SETTING_SYNC_LAST_ERROR, "")
-    error_at, _, error_text = last_error_raw.partition(" | ")
+    error_at, __, error_text = last_error_raw.partition(" | ")
     with Session(get_engine()) as session:
         queue = int(
             session.scalar(
@@ -576,7 +606,9 @@ def _flush_outgoing(
             except (UsedeskError, TelegramError) as error:
                 had_failure = True
                 errors += 1
-                _bump_error_counter(f"{event} заявки {ticket_id}: {error}")
+                _bump_error_counter(
+                    _("{event} заявки {id}: {error}", event=event, id=ticket_id, error=error)
+                )
                 _queue_add(ticket_id, {event})  # возврат в очередь, атомарно
                 logger.warning(
                     "Событие %s заявки %s не отправлено: %s",
@@ -639,9 +671,9 @@ def _send_usedesk(client: UsedeskClient, ticket: Ticket) -> None:
 
 
 def _close_message(ticket: Ticket) -> str:
-    message = f"Заявка № {ticket.number} закрыта в панели {PANEL_NAME}."
+    message = _("Заявка № {n} закрыта в панели {panel}.", n=ticket.number, panel=_(PANEL_NAME))
     if ticket.comment:
-        message += f" Комментарий: {ticket.comment}"
+        message += " " + _("Комментарий: {text}", text=ticket.comment)
     return message
 
 
@@ -652,9 +684,9 @@ def _closed_status_id() -> int:
 def _send_telegram_new(client: TelegramClient, ticket: Ticket) -> None:
     logins = user_login_map([ticket.created_by])
     lines = [
-        f"Новая заявка № {ticket.number}: {ticket.title}",
-        f"Автор: {logins.get(ticket.created_by) or '—'}",
-        f"Плановое время: {ticket.planned_at or '—'}",
+        _("Новая заявка № {n}: {title}", n=ticket.number, title=ticket.title),
+        _("Автор: {login}", login=logins.get(ticket.created_by) or "—"),
+        _("Плановое время: {at}", at=ticket.planned_at or "—"),
     ]
     client.send_message(telegram_chat_id(), "\n".join(lines))
 
@@ -662,9 +694,9 @@ def _send_telegram_new(client: TelegramClient, ticket: Ticket) -> None:
 def _send_telegram_closed(client: TelegramClient, ticket: Ticket) -> None:
     logins = user_login_map([ticket.closed_by])
     lines = [
-        f"Заявка № {ticket.number} закрыта",
-        f"Закрыл: {logins.get(ticket.closed_by) or '—'}",
-        f"Комментарий: {ticket.comment or '—'}",
+        _("Заявка № {n} закрыта", n=ticket.number),
+        _("Закрыл: {login}", login=logins.get(ticket.closed_by) or "—"),
+        _("Комментарий: {text}", text=ticket.comment or "—"),
     ]
     client.send_message(telegram_chat_id(), "\n".join(lines))
 
@@ -689,7 +721,7 @@ def _pull_incoming(client: UsedeskClient) -> SyncStats:
     try:
         items = client.list_updated(watermark)
     except UsedeskError as error:
-        _bump_error_counter(f"входящие UseDesk: {error}")
+        _bump_error_counter(_("входящие UseDesk: {error}", error=error))
         logger.warning(
             "Входящая выборка UseDesk не удалась: %s",
             sanitize_secret_text(str(error), usedesk_api_token(), telegram_bot_token()),
@@ -725,7 +757,7 @@ def _parse_watermark() -> datetime:
 
 
 def _create_incoming(session: Session, item: dict, usedesk_id: str, change_at: datetime) -> Ticket:
-    subject = str(item.get("subject") or "").strip() or "Без темы"
+    subject = str(item.get("subject") or "").strip() or _("Без темы")
     last_comment = item.get("last_comment")
     description = last_comment.get("message") if isinstance(last_comment, dict) else ""
     created_at = parse_usedesk_datetime(item.get("created_at")) or change_at

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Открытые заявки' if current_status == 'open' else 'История' }} — Тикеты Енот{% endblock %}
+{% block title %}{{ _("Открытые заявки") if current_status == 'open' else _("История") }} — {{ _("Тикеты Енот") }}{% endblock %}
 {% block content %}
 {% if done_message %}
 <p class="flash" role="status">
@@ -12,11 +12,11 @@
 {% endif %}
 
 <div class="page-head">
-    <h1 class="page-title">{{ 'Открытые заявки' if current_status == 'open' else 'История закрытых' }}</h1>
+    <h1 class="page-title">{{ _("Открытые заявки") if current_status == 'open' else _("История закрытых") }}</h1>
     <div class="flex flex-wrap gap-2 text-xs on-bg-muted">
-        <span>Открыто: {{ summary.open }}</span>
-        <span>Закрыто сегодня: {{ summary.closed_today }}</span>
-        <span>За 7 дней: {{ summary.closed_week }}</span>
+        <span>{{ _("Открыто: {n}", n=summary.open) }}</span>
+        <span>{{ _("Закрыто сегодня: {n}", n=summary.closed_today) }}</span>
+        <span>{{ _("За 7 дней: {n}", n=summary.closed_week) }}</span>
     </div>
 </div>
 
@@ -28,23 +28,23 @@
         <div class="search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 L21 21" stroke-linecap="round"/></svg>
             <input name="q" value="{{ q }}" type="search" autocomplete="off" data-hotkey-search
-                   placeholder="Поиск: номер, название, описание, комментарий" aria-label="Поиск по заявкам">
+                   placeholder="{{ _("Поиск: номер, название, описание, комментарий") }}" aria-label="{{ _("Поиск по заявкам") }}">
             <span class="kbd" aria-hidden="true">/</span>
         </div>
-        <noscript><button type="submit" class="btn btn-blue">Найти</button></noscript>
+        <noscript><button type="submit" class="btn btn-blue">{{ _("Найти") }}</button></noscript>
     </div>
     <details class="filters"{% if filter_active %} open{% endif %}>
         <summary>
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4" stroke-linecap="round"/></svg>
-            Период исполнения{% if filter_active %} · задан{% endif %}
+            {{ _("Период исполнения") }}{% if filter_active %} · {{ _("задан") }}{% endif %}
         </summary>
         <div class="filters-body">
-            <input type="date" name="date_from" value="{{ date_from }}" aria-label="Исполнение с">
-            <input type="time" name="time_from" value="{{ time_from }}" aria-label="Время с">
+            <input type="date" name="date_from" value="{{ date_from }}" aria-label="{{ _("Исполнение с") }}">
+            <input type="time" name="time_from" value="{{ time_from }}" aria-label="{{ _("Время с") }}">
             <span class="on-bg-muted">&mdash;</span>
-            <input type="date" name="date_to" value="{{ date_to }}" aria-label="Исполнение по">
-            <input type="time" name="time_to" value="{{ time_to }}" aria-label="Время по">
-            {% if filter_active %}<a href="/tickets?status={{ current_status }}" class="text-xs on-bg-muted hover:underline">сбросить</a>{% endif %}
+            <input type="date" name="date_to" value="{{ date_to }}" aria-label="{{ _("Исполнение по") }}">
+            <input type="time" name="time_to" value="{{ time_to }}" aria-label="{{ _("Время по") }}">
+            {% if filter_active %}<a href="/tickets?status={{ current_status }}" class="text-xs on-bg-muted hover:underline">{{ _("сбросить") }}</a>{% endif %}
         </div>
     </details>
 </form>
@@ -75,27 +75,27 @@
     {% endfor %}
 {% else %}
     {% if q or filter_active %}
-    <p class="empty">Ничего не найдено</p>
+    <p class="empty">{{ _("Ничего не найдено") }}</p>
     {% elif current_status == 'open' %}
     <div class="empty">
-        <p>Открытых заявок нет — всё сделано</p>
-        <a href="/tickets/new" class="btn btn-purple mt-3">Создать заявку</a>
+        <p>{{ _("Открытых заявок нет — всё сделано") }}</p>
+        <a href="/tickets/new" class="btn btn-purple mt-3">{{ _("Создать заявку") }}</a>
     </div>
     {% else %}
-    <p class="empty">Закрытых заявок пока нет</p>
+    <p class="empty">{{ _("Закрытых заявок пока нет") }}</p>
     {% endif %}
 {% endif %}
 
 {% if pages > 1 %}
-<nav class="pager" aria-label="Страницы">
+<nav class="pager" aria-label="{{ _("Страницы") }}">
     {% set list_query %}status={{ current_status }}&amp;q={{ q|urlencode }}{{ filter_qs }}{% endset %}
-    {% if page > 1 %}<a href="/tickets?{{ list_query }}&amp;page={{ page - 1 }}" aria-label="Назад">&larr;</a>{% endif %}
+    {% if page > 1 %}<a href="/tickets?{{ list_query }}&amp;page={{ page - 1 }}" aria-label="{{ _("Назад") }}">&larr;</a>{% endif %}
     {% for p in page_numbers %}
     {% if p is none %}<span class="gap">…</span>
     {% elif p == page %}<span class="on" aria-current="page">{{ p }}</span>
     {% else %}<a href="/tickets?{{ list_query }}&amp;page={{ p }}">{{ p }}</a>{% endif %}
     {% endfor %}
-    {% if page < pages %}<a href="/tickets?{{ list_query }}&amp;page={{ page + 1 }}" aria-label="Вперёд">&rarr;</a>{% endif %}
+    {% if page < pages %}<a href="/tickets?{{ list_query }}&amp;page={{ page + 1 }}" aria-label="{{ _("Вперёд") }}">&rarr;</a>{% endif %}
 </nav>
 {% endif %}
 </div>
@@ -104,7 +104,7 @@
     <div class="p-5">
         <div id="modal-content"></div>
         <div class="mt-4 text-right">
-            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Закрыть</button>
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">{{ _("Закрыть") }}</button>
         </div>
     </div>
 </dialog>

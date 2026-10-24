@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Шаблоны — Тикеты Енот{% endblock %}
+{% block title %}{{ _("Шаблоны") }} — {{ _("Тикеты Енот") }}{% endblock %}
 {% block content %}
 {% if done_message %}
 <p class="flash" role="status">
@@ -8,49 +8,49 @@
 </p>
 {% endif %}
 <div class="page-head">
-    <h1 class="page-title">Шаблоны заявок</h1>
-    <a href="/tickets/new" class="btn btn-purple btn-sm">Новая заявка</a>
+    <h1 class="page-title">{{ _("Шаблоны заявок") }}</h1>
+    <a href="/tickets/new" class="btn btn-purple btn-sm">{{ _("Новая заявка") }}</a>
 </div>
 
 <details class="page-panel howto" id="howto"{% if not mine and not shared %} open{% endif %}>
     <summary class="howto-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.7M12 17v.01" stroke-linecap="round"/></svg>
-        Как сделать шаблон — 1 минута
+        {{ _("Как сделать шаблон — 1 минута") }}
     </summary>
     <ol class="howto-steps">
-        <li><b>Название</b> — как будет подписана кнопка на форме заявки, например «Обновление базы».</li>
-        <li><b>Заголовок</b> и <b>описание</b> — текст, который встанет в заявку. Меняющуюся часть возьмите в фигурные скобки: <code>Обновить {база}</code>. После клика по шаблону <code>{база}</code> выделится — сразу печатайте номер.</li>
-        <li><b>Показывать всем</b> — отметьте, если шаблон пригодится коллегам. Без галочки он личный: видите и правите только вы.</li>
-        <li>Нажмите <b>Создать шаблон</b>. Он сразу появится на форме «Новая заявка» в строке «Шаблон:».</li>
+        <li><b>{{ _("Название") }}</b> — {{ _("как будет подписана кнопка на форме заявки, например «Обновление базы».") }}</li>
+        <li><b>{{ _("Заголовок") }}</b> {{ _("и") }} <b>{{ _("описание") }}</b> — {{ _("текст, который встанет в заявку. Меняющуюся часть возьмите в фигурные скобки:") }} <code>{{ _("Обновить {база}") }}</code>. {{ _("После клика по шаблону") }} <code>{{ _("{база}") }}</code> {{ _("выделится — сразу печатайте номер.") }}</li>
+        <li><b>{{ _("Показывать всем") }}</b> — {{ _("отметьте, если шаблон пригодится коллегам. Без галочки он личный: видите и правите только вы.") }}</li>
+        <li>{{ _("Нажмите") }} <b>{{ _("Создать шаблон") }}</b>. {{ _("Он сразу появится на форме «Новая заявка» в строке «Шаблон:».") }}</li>
     </ol>
-    <p class="hint mt-2">Быстрее всего — из готовой заявки: в её карточке или в истории нажмите «Сохранить как шаблон», поля заполнятся сами, останется заменить номер на <code>{база}</code>.</p>
-    {% if not buttons_on %}<p class="alert mt-3">Кнопки шаблонов на форме сейчас выключены администратором.</p>{% endif %}
+    <p class="hint mt-2">{{ _("Быстрее всего — из готовой заявки: в её карточке или в истории нажмите «Сохранить как шаблон», поля заполнятся сами, останется заменить номер на") }} <code>{{ _("{база}") }}</code>.</p>
+    {% if not buttons_on %}<p class="alert mt-3">{{ _("Кнопки шаблонов на форме сейчас выключены администратором.") }}</p>{% endif %}
 </details>
 
 <section class="page-panel mt-6" id="create">
-    <h2 class="text-lg font-semibold">Новый шаблон</h2>
+    <h2 class="text-lg font-semibold">{{ _("Новый шаблон") }}</h2>
     {% if error %}<p class="alert mt-3">{{ error }}</p>{% endif %}
     <form method="post" action="/templates/create" class="mt-4 space-y-4" data-hotkey-submit>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div>
-            <label for="tpl-name" class="lbl">Название кнопки</label>
-            <input id="tpl-name" name="name" value="{{ form.name }}" maxlength="128" placeholder="Обновление базы" class="field">
+            <label for="tpl-name" class="lbl">{{ _("Название кнопки") }}</label>
+            <input id="tpl-name" name="name" value="{{ form.name }}" maxlength="128" placeholder="{{ _("Обновление базы") }}" class="field">
         </div>
         <div>
-            <label for="tpl-title" class="lbl">Заголовок заявки</label>
-            <input id="tpl-title" name="title_tpl" value="{{ form.title_tpl }}" placeholder="Обновить {база}" class="field">
+            <label for="tpl-title" class="lbl">{{ _("Заголовок заявки") }}</label>
+            <input id="tpl-title" name="title_tpl" value="{{ form.title_tpl }}" placeholder="{{ _("Обновить {база}") }}" class="field">
         </div>
         <div>
-            <label for="tpl-description" class="lbl">Описание заявки</label>
-            <textarea id="tpl-description" name="description_tpl" rows="3" placeholder="на крайний релиз, сначала бэкап" class="field">{{ form.description_tpl }}</textarea>
+            <label for="tpl-description" class="lbl">{{ _("Описание заявки") }}</label>
+            <textarea id="tpl-description" name="description_tpl" rows="3" placeholder="{{ _("на крайний релиз, сначала бэкап") }}" class="field">{{ form.description_tpl }}</textarea>
         </div>
         <label class="flex items-center gap-2 text-sm">
             <input type="checkbox" name="shared" value="1"{% if form.shared %} checked{% endif %}>
-            Показывать всем (иначе — только мне)
+            {{ _("Показывать всем (иначе — только мне)") }}
         </label>
         <div class="flex flex-wrap items-center gap-3">
-            <button type="submit" class="btn btn-blue">Создать шаблон</button>
-            <span class="hint">Ctrl+Enter — сохранить</span>
+            <button type="submit" class="btn btn-blue">{{ _("Создать шаблон") }}</button>
+            <span class="hint">{{ _("Ctrl+Enter — сохранить") }}</span>
         </div>
     </form>
 </section>
@@ -64,17 +64,17 @@
         <div class="tpl-main">
             <div class="flex flex-wrap items-center gap-2">
                 <span class="tpl-name">{{ t.name }}</span>
-                {% if t.is_shared %}<span class="chip chip-sm chip-ok">для всех</span>{% else %}<span class="chip chip-sm">личный</span>{% endif %}
-                {% if not row.mine %}<span class="hint">{{ row.author or 'общий' }}</span>{% endif %}
+                {% if t.is_shared %}<span class="chip chip-sm chip-ok">{{ _("для всех") }}</span>{% else %}<span class="chip chip-sm">{{ _("личный") }}</span>{% endif %}
+                {% if not row.mine %}<span class="hint">{{ row.author or _("общий") }}</span>{% endif %}
             </div>
             <p class="tpl-text"><b>{{ t.title_tpl }}</b> — {{ t.description_tpl }}</p>
         </div>
         {% if row.editable %}
         <div class="tpl-actions">
-            <a href="/templates/{{ t.id }}/edit" class="btn btn-ghost btn-sm">Изменить</a>
-            <form method="post" action="/templates/{{ t.id }}/delete" data-confirm="Удалить шаблон «{{ t.name }}»?">
+            <a href="/templates/{{ t.id }}/edit" class="btn btn-ghost btn-sm">{{ _("Изменить") }}</a>
+            <form method="post" action="/templates/{{ t.id }}/delete" data-confirm="{{ _("Удалить шаблон «{name}»?", name=t.name) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="btn-icon btn-icon-danger" title="Удалить" aria-label="Удалить шаблон {{ t.name }}">
+                <button type="submit" class="btn-icon btn-icon-danger" title="{{ _("Удалить") }}" aria-label="{{ _("Удалить шаблон {name}", name=t.name) }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6.5 7l1 12.5h9L17.5 7M9.5 7V4.5h5V7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
             </form>
@@ -88,9 +88,9 @@
 {% endif %}
 {% endmacro %}
 
-<h2 class="group-title mt-6">Мои шаблоны · {{ mine|length }}</h2>
-{{ template_list(mine, "Своих шаблонов пока нет — создайте первый выше") }}
+<h2 class="group-title mt-6">{{ _("Мои шаблоны") }} · {{ mine|length }}</h2>
+{{ template_list(mine, _("Своих шаблонов пока нет — создайте первый выше")) }}
 
-<h2 class="group-title mt-6">Общие · {{ shared|length }}</h2>
-{{ template_list(shared, "Общих шаблонов пока нет") }}
+<h2 class="group-title mt-6">{{ _("Общие") }} · {{ shared|length }}</h2>
+{{ template_list(shared, _("Общих шаблонов пока нет")) }}
 {% endblock %}

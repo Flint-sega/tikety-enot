@@ -7,7 +7,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="hidden" name="value" value="{{ '0' if feature.on else '1' }}">
         <button type="submit" class="rounded-full px-3 py-1 text-xs font-medium {% if feature.on %}bg-emerald-600 text-emerald-950 hover:bg-emerald-500{% else %}bg-slate-200 text-slate-600 hover:bg-slate-300{% endif %}">
-            {{ 'Включена' if feature.on else 'Выключена' }}
+            {{ _("Включена") if feature.on else _("Выключена") }}
         </button>
     </form>
 </div>

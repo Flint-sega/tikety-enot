@@ -27,6 +27,7 @@ from app.auth import (
     require,
     templates,
 )
+from app.i18n import N_, _
 from app.models import User
 from app.sync import (
     EVENT_TELEGRAM_CLOSED,
@@ -73,9 +74,9 @@ PLANNED_WIDGET_FORMAT = re.compile(
 )
 
 NAV_SECTIONS = (
-    ("tickets", "Заявки", "/tickets", "operator"),
-    ("users", "Пользователи", "/users", "admin"),
-    ("admin", "Админ", "/admin", "admin"),
+    ("tickets", N_("Заявки"), "/tickets", "operator"),
+    ("users", N_("Пользователи"), "/users", "admin"),
+    ("admin", N_("Админ"), "/admin", "admin"),
 )
 
 
@@ -101,7 +102,7 @@ def nav_sections(request: Request, user: object) -> list[dict]:
         if ROLE_LEVEL.get(user.role, 0) < ROLE_LEVEL[min_role]:
             continue
         sections.append(
-            {"key": key, "label": label, "href": href, "active": _section_active(path, href)}
+            {"key": key, "label": _(label), "href": href, "active": _section_active(path, href)}
         )
     return sections
 
@@ -111,10 +112,10 @@ templates.env.globals["nav_sections"] = nav_sections
 templates.env.globals["topbar_counts"] = open_overview
 
 DONE_MESSAGES = {
-    "created": "Заявка №{n} создана",
-    "saved": "Заявка №{n} сохранена",
-    "closed": "Заявка №{n} закрыта",
-    "deleted": "Заявка №{n} удалена",
+    "created": N_("Заявка №{n} создана"),
+    "saved": N_("Заявка №{n} сохранена"),
+    "closed": N_("Заявка №{n} закрыта"),
+    "deleted": N_("Заявка №{n} удалена"),
 }
 
 
@@ -123,7 +124,7 @@ def done_message(done: str, number: str) -> str | None:
     template = DONE_MESSAGES.get(done)
     if template is None or not number.isdecimal() or len(number) > 9:
         return None
-    return template.format(n=int(number))
+    return _(template, n=int(number))
 
 
 def _done_url(done: str, number: int) -> str:
@@ -146,7 +147,7 @@ def page_numbers(page: int, pages: int) -> list[int | None]:
 
 
 def _not_found() -> HTMLResponse:
-    return HTMLResponse("Заявка не найдена", status_code=404)
+    return HTMLResponse(_("Заявка не найдена"), status_code=404)
 
 
 def _card_views(tickets: list, now_msk=None):
@@ -423,18 +424,18 @@ def build_planned_at(form: dict[str, str]) -> tuple[str, str]:
     try:
         parsed_day = datetime.strptime(day, "%Y-%m-%d")
     except ValueError:
-        return "", "Укажите дату планового времени (ГГГГ-ММ-ДД)"
+        return "", _("Укажите дату планового времени (ГГГГ-ММ-ДД)")
     clean_from = _planned_time(time_from)
     if clean_from is None:
-        return "", "Укажите время «с» (ЧЧ:ММ)" if mode == "range" else "Укажите время (ЧЧ:ММ)"
+        return "", _("Укажите время «с» (ЧЧ:ММ)") if mode == "range" else _("Укажите время (ЧЧ:ММ)")
     start = f"{parsed_day.strftime('%Y-%m-%d')} {clean_from}"
     if mode != "range":
         return start, ""
     clean_to = _planned_time(time_to)
     if clean_to is None:
-        return "", "Укажите время «до» (ЧЧ:ММ)"
+        return "", _("Укажите время «до» (ЧЧ:ММ)")
     if clean_to < clean_from:
-        return "", "Время «до» раньше времени «с»"
+        return "", _("Время «до» раньше времени «с»")
     return f"{start}–{clean_to}", ""
 
 
@@ -447,13 +448,13 @@ def _form_errors(form: dict[str, str]) -> dict[str, str]:
     title = form.get("title", "").strip()
     description = form.get("description", "")
     if not title:
-        errors["title"] = "Укажите заголовок"
+        errors["title"] = _("Укажите заголовок")
     elif len(title) > TITLE_MAX_LENGTH:
-        errors["title"] = f"Заголовок длиннее {TITLE_MAX_LENGTH} символов"
+        errors["title"] = _("Заголовок длиннее {n} символов", n=TITLE_MAX_LENGTH)
     if not description.strip():
-        errors["description"] = "Укажите описание"
+        errors["description"] = _("Укажите описание")
     elif len(description) > DESCRIPTION_MAX_LENGTH:
-        errors["description"] = f"Описание длиннее {DESCRIPTION_MAX_LENGTH} символов"
+        errors["description"] = _("Описание длиннее {n} символов", n=DESCRIPTION_MAX_LENGTH)
     return errors
 
 

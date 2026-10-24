@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Админ — Тикеты Енот{% endblock %}
+{% block title %}{{ _("Админ") }} — {{ _("Тикеты Енот") }}{% endblock %}
 {% block content %}
 <div class="page-head">
-    <h1 class="page-title">Админ</h1>
+    <h1 class="page-title">{{ _("Админ") }}</h1>
 </div>
-<nav class="admin-nav" aria-label="Разделы админки">
-    <a href="#appearance">Внешний вид</a>
-    <a href="#features">Функции и ключи</a>
+<nav class="admin-nav" aria-label="{{ _("Разделы админки") }}">
+    <a href="#appearance">{{ _("Внешний вид") }}</a>
+    <a href="#features">{{ _("Функции и ключи") }}</a>
     <a href="#usedesk">UseDesk</a>
-    <a href="#templates">Шаблоны</a>
-    <a href="#export">Экспорт</a>
-    <a href="#diagnostics">Диагностика</a>
+    <a href="#templates">{{ _("Шаблоны") }}</a>
+    <a href="#export">{{ _("Экспорт") }}</a>
+    <a href="#diagnostics">{{ _("Диагностика") }}</a>
 </nav>
 <div class="page-panel admin-panel">
     <section id="appearance" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Внешний вид</h2>
-        <p class="mt-1 text-xs text-slate-400">Вид по умолчанию: его видят на входе, новые пользователи и все, если личные настройки выключены. Свой вид каждый задаёт в «Мой профиль».</p>
+        <h2 class="text-sm font-semibold">{{ _("Внешний вид") }}</h2>
+        <p class="mt-1 text-xs text-slate-400">{{ _("Вид по умолчанию: его видят на входе, новые пользователи и все, если личные настройки выключены. Свой вид каждый задаёт в «Мой профиль».") }}</p>
         <div class="mt-2 divide-y divide-slate-100">
             {% for feature in appearance_features %}{% include "admin/_feature_toggle.html" %}{% endfor %}
         </div>
@@ -24,47 +24,63 @@
         {% endif %}
         <form method="post" action="/admin/settings/theme-default" class="mt-3 flex flex-wrap items-center gap-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <label for="default-theme" class="text-sm font-medium text-slate-700">Тема по умолчанию</label>
+            <label for="default-theme" class="text-sm font-medium text-slate-700">{{ _("Тема по умолчанию") }}</label>
             <select id="default-theme" name="value"
                     class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                <option value="new"{% if theme_default == 'new' %} selected{% endif %}>Ночь</option>
-                <option value="classic"{% if theme_default == 'classic' %} selected{% endif %}>Классика</option>
+                <option value="new"{% if theme_default == 'new' %} selected{% endif %}>{{ _("Ночь") }}</option>
+                <option value="classic"{% if theme_default == 'classic' %} selected{% endif %}>{{ _("Классика") }}</option>
             </select>
-            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">Сохранить</button>
+            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить") }}</button>
         </form>
 
-        <h3 class="mt-6 text-sm font-semibold">Форма плашек и кнопок</h3>
-        <p class="mt-1 text-xs text-slate-400">Действует для всех сразу и во всех темах. Плашки — карточки заявок, панели, поля и чипы; кнопки — все кнопки панели.</p>
+        <form method="post" action="/admin/settings/language-default" class="mt-3 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label for="default-language" class="text-sm font-medium text-slate-700">{{ _("Язык по умолчанию") }}</label>
+            <select id="default-language" name="value"
+                    class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
+                {% for code, label in language_choices %}
+                <option value="{{ code }}"{% if language_default == code %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить") }}</button>
+        </form>
+        <p class="mt-1 text-xs text-slate-400">{{ _("Для страницы входа и сообщений в Телеграм и UseDesk. Каждый может переключить язык у себя кнопкой RU/EN в шапке.") }}</p>
+        {% if language_error %}
+        <p class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ language_error }}</p>
+        {% endif %}
+
+        <h3 class="mt-6 text-sm font-semibold">{{ _("Форма плашек и кнопок") }}</h3>
+        <p class="mt-1 text-xs text-slate-400">{{ _("Действует для всех сразу и во всех темах. Плашки — карточки заявок, панели, поля и чипы; кнопки — все кнопки панели.") }}</p>
         {% if shape_error %}
         <p class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ shape_error }}</p>
         {% endif %}
         <form method="post" action="/admin/settings/shapes" class="mt-3 flex flex-wrap items-center gap-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <label for="card-shape" class="text-sm font-medium text-slate-700">Плашки</label>
+            <label for="card-shape" class="text-sm font-medium text-slate-700">{{ _("Плашки") }}</label>
             <select id="card-shape" name="card_shape"
                     class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                <option value="round"{% if card_shape == 'round' %} selected{% endif %}>Круглые</option>
-                <option value="square"{% if card_shape == 'square' %} selected{% endif %}>Прямоугольные</option>
+                <option value="round"{% if card_shape == 'round' %} selected{% endif %}>{{ _("Круглые") }}</option>
+                <option value="square"{% if card_shape == 'square' %} selected{% endif %}>{{ _("Прямоугольные") }}</option>
             </select>
-            <label for="button-shape" class="text-sm font-medium text-slate-700">Кнопки</label>
+            <label for="button-shape" class="text-sm font-medium text-slate-700">{{ _("Кнопки") }}</label>
             <select id="button-shape" name="button_shape"
                     class="rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                <option value="round"{% if button_shape == 'round' %} selected{% endif %}>Круглые</option>
-                <option value="square"{% if button_shape == 'square' %} selected{% endif %}>Прямоугольные</option>
+                <option value="round"{% if button_shape == 'round' %} selected{% endif %}>{{ _("Круглые") }}</option>
+                <option value="square"{% if button_shape == 'square' %} selected{% endif %}>{{ _("Прямоугольные") }}</option>
             </select>
-            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">Сохранить</button>
+            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить") }}</button>
         </form>
     </section>
 
     <section id="features" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Функции</h2>
-        <p class="mt-1 text-xs text-slate-400">Переключение сразу, без перезагрузки. Ключ из админки сильнее значения из .env; если ключа нет ни там, ни там — интеграция выключена при любом тумблере.</p>
+        <h2 class="text-sm font-semibold">{{ _("Функции") }}</h2>
+        <p class="mt-1 text-xs text-slate-400">{{ _("Переключение сразу, без перезагрузки. Ключ из админки сильнее значения из .env; если ключа нет ни там, ни там — интеграция выключена при любом тумблере.") }}</p>
         <div class="mt-2 divide-y divide-slate-100">
             {% for feature in features %}{% include "admin/_feature_toggle.html" %}{% endfor %}
         </div>
 
-        <h3 class="mt-6 text-sm font-semibold">Ключи и функции</h3>
-        <p class="mt-1 text-xs text-slate-400">Ключи видно маской (последние 4 символа), поле ввода — write-only: пустое поле ничего не меняет. «Очистить» вернёт значение из .env или выключит интеграцию. Сохранение действует сразу, без перезапуска панели.</p>
+        <h3 class="mt-6 text-sm font-semibold">{{ _("Ключи и функции") }}</h3>
+        <p class="mt-1 text-xs text-slate-400">{{ _("Ключи видно маской (последние 4 символа), поле ввода — write-only: пустое поле ничего не меняет. «Очистить» вернёт значение из .env или выключит интеграцию. Сохранение действует сразу, без перезапуска панели.") }}</p>
         {% if tokens_error %}
         <p class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ tokens_error }}</p>
         {% endif %}
@@ -72,125 +88,125 @@
         <div class="mt-3 rounded-md border border-slate-100 p-3">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="min-w-64 flex-1">
-                    <p class="text-sm font-medium text-slate-800">UseDesk API-токен</p>
-                    <p class="mt-1 text-xs text-slate-500">Текущее значение: <span class="font-mono">{{ usedesk_token_mask }}</span></p>
-                    <form method="post" action="/admin/settings/tokens" class="mt-2 flex flex-wrap items-center gap-3" data-confirm-clear>
+                    <p class="text-sm font-medium text-slate-800">{{ _("UseDesk API-токен") }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ _("Текущее значение:") }} <span class="font-mono">{{ usedesk_token_mask }}</span></p>
+                    <form method="post" action="/admin/settings/tokens" class="mt-2 flex flex-wrap items-center gap-3" data-confirm-clear="{{ _("Отмеченный ключ будет очищен: панель вернётся к значению из .env или интеграция выключится. Продолжить?") }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <input type="password" name="usedesk_api_token" placeholder="Новый токен (пусто — не менять)" autocomplete="new-password"
+                        <input type="password" name="usedesk_api_token" placeholder="{{ _("Новый токен (пусто — не менять)") }}" autocomplete="new-password"
                                class="w-72 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
                         <label class="flex items-center gap-1.5 text-xs text-slate-600">
-                            <input type="checkbox" name="clear_usedesk" class="rounded border-slate-300"> очистить
+                            <input type="checkbox" name="clear_usedesk" class="rounded border-slate-300"> {{ _("очистить") }}
                         </label>
-                        <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">Сохранить</button>
+                        <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить") }}</button>
                     </form>
                 </div>
-                {% with name = "usedesk", label = "Тест UseDesk", result = usedesk_result %}{% include "admin/_diagnostic.html" %}{% endwith %}
+                {% with name = "usedesk", label = _("Тест UseDesk"), result = usedesk_result %}{% include "admin/_diagnostic.html" %}{% endwith %}
             </div>
         </div>
 
         <div class="mt-3 rounded-md border border-slate-100 p-3">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="min-w-64 flex-1">
-                    <p class="text-sm font-medium text-slate-800">Телеграм-бот</p>
-                    <p class="mt-1 text-xs text-slate-500">Токен бота: <span class="font-mono">{{ telegram_token_mask }}</span> · chat_id: <span class="font-mono">{{ telegram_chat_mask }}</span></p>
-                    <form method="post" action="/admin/settings/tokens" class="mt-2 space-y-2" data-confirm-clear>
+                    <p class="text-sm font-medium text-slate-800">{{ _("Телеграм-бот") }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ _("Токен бота:") }} <span class="font-mono">{{ telegram_token_mask }}</span> · chat_id: <span class="font-mono">{{ telegram_chat_mask }}</span></p>
+                    <form method="post" action="/admin/settings/tokens" class="mt-2 space-y-2" data-confirm-clear="{{ _("Отмеченный ключ будет очищен: панель вернётся к значению из .env или интеграция выключится. Продолжить?") }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                        <input type="password" name="telegram_bot_token" placeholder="Новый токен бота (пусто — не менять)" autocomplete="new-password"
+                        <input type="password" name="telegram_bot_token" placeholder="{{ _("Новый токен бота (пусто — не менять)") }}" autocomplete="new-password"
                                class="w-72 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                        <input type="text" name="telegram_chat_id" placeholder="chat_id: число группы или @имя_канала" autocomplete="off"
+                        <input type="text" name="telegram_chat_id" placeholder="{{ _("chat_id: число группы или @имя_канала") }}" autocomplete="off"
                                class="w-72 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
                         <div class="flex flex-wrap items-center gap-3">
                             <label class="flex items-center gap-1.5 text-xs text-slate-600">
-                                <input type="checkbox" name="clear_telegram" class="rounded border-slate-300"> очистить токен
+                                <input type="checkbox" name="clear_telegram" class="rounded border-slate-300"> {{ _("очистить токен") }}
                             </label>
                             <label class="flex items-center gap-1.5 text-xs text-slate-600">
-                                <input type="checkbox" name="clear_telegram_chat" class="rounded border-slate-300"> очистить chat_id
+                                <input type="checkbox" name="clear_telegram_chat" class="rounded border-slate-300"> {{ _("очистить chat_id") }}
                             </label>
-                            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">Сохранить</button>
+                            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить") }}</button>
                         </div>
                     </form>
                 </div>
-                {% with name = "telegram", label = "Тестовое сообщение", result = telegram_result %}{% include "admin/_diagnostic.html" %}{% endwith %}
+                {% with name = "telegram", label = _("Тестовое сообщение"), result = telegram_result %}{% include "admin/_diagnostic.html" %}{% endwith %}
             </div>
         </div>
     </section>
 
     <section id="usedesk" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Маппинг статусов UseDesk</h2>
+        <h2 class="text-sm font-semibold">{{ _("Маппинг статусов UseDesk") }}</h2>
         {% if mapping_error %}
         <p class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ mapping_error }}</p>
         {% endif %}
         <form method="post" action="/admin/settings/mapping" class="mt-3 space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div>
-                <label for="usedesk_status_closed" class="block text-sm font-medium text-slate-700">Закрытие заявки в панели &rarr; статус UseDesk</label>
+                <label for="usedesk_status_closed" class="block text-sm font-medium text-slate-700">{{ _("Закрытие заявки в панели → статус UseDesk") }}</label>
                 <input id="usedesk_status_closed" name="usedesk_status_closed" value="{{ status_closed }}"
                        class="mt-1 w-32 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                <p class="mt-1 text-xs text-slate-400">Число-id статуса. По умолчанию 2 «Выполнен» — тред остаётся живым, новое сообщение клиента переоткроет тикет.</p>
+                <p class="mt-1 text-xs text-slate-400">{{ _("Число-id статуса. По умолчанию 2 «Выполнен» — тред остаётся живым, новое сообщение клиента переоткроет тикет.") }}</p>
             </div>
             <div>
-                <label for="usedesk_closed_statuses" class="block text-sm font-medium text-slate-700">Статусы UseDesk, считающиеся закрытыми</label>
+                <label for="usedesk_closed_statuses" class="block text-sm font-medium text-slate-700">{{ _("Статусы UseDesk, считающиеся закрытыми") }}</label>
                 <input id="usedesk_closed_statuses" name="usedesk_closed_statuses" value="{{ closed_statuses }}"
                        class="mt-1 w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none">
-                <p class="mt-1 text-xs text-slate-400">Числа через запятую. По умолчанию 2,3,4,7,10 — Выполнен, Закрыт, Спам, Удален, Объединен.</p>
+                <p class="mt-1 text-xs text-slate-400">{{ _("Числа через запятую. По умолчанию 2,3,4,7,10 — Выполнен, Закрыт, Спам, Удален, Объединен.") }}</p>
             </div>
-            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">Сохранить маппинг</button>
+            <button type="submit" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700">{{ _("Сохранить маппинг") }}</button>
         </form>
     </section>
 
     <section id="templates" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Шаблоны заявок</h2>
-        <p class="mt-1 text-xs text-slate-500">Шаблоны теперь делает каждый на странице «Шаблоны»: личные (видит только автор) или «для всех». Админ правит любые общие. Как это работает — там же, в блоке «Как сделать шаблон».</p>
+        <h2 class="text-sm font-semibold">{{ _("Шаблоны заявок") }}</h2>
+        <p class="mt-1 text-xs text-slate-500">{{ _("Шаблоны теперь делает каждый на странице «Шаблоны»: личные (видит только автор) или «для всех». Админ правит любые общие. Как это работает — там же, в блоке «Как сделать шаблон».") }}</p>
         <p class="mt-2 text-sm">
-            Кнопки шаблонов на форме заявки:
-            {% if templates_on %}<span class="chip chip-sm chip-ok">включены</span>{% else %}<span class="chip chip-sm chip-overdue">выключены</span> <a href="#features" class="text-blue-700 hover:underline">включить в «Функциях»</a>{% endif %}
-            · всего шаблонов: {{ templates|length }}
+            {{ _("Кнопки шаблонов на форме заявки:") }}
+            {% if templates_on %}<span class="chip chip-sm chip-ok">{{ _("включены") }}</span>{% else %}<span class="chip chip-sm chip-overdue">{{ _("выключены") }}</span> <a href="#features" class="text-blue-700 hover:underline">{{ _("включить в «Функциях»") }}</a>{% endif %}
+            · {{ _("всего шаблонов: {n}", n=templates|length) }}
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
-            <a href="/templates" class="btn btn-blue btn-sm">Открыть «Шаблоны»</a>
+            <a href="/templates" class="btn btn-blue btn-sm">{{ _("Открыть «Шаблоны»") }}</a>
             {% if not templates %}
             <form method="post" action="/admin/templates/examples">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                <button type="submit" class="btn btn-ghost btn-sm">Добавить примеры (3 общих шаблона)</button>
+                <button type="submit" class="btn btn-ghost btn-sm">{{ _("Добавить примеры (3 общих шаблона)") }}</button>
             </form>
             {% endif %}
         </div>
     </section>
 
     <section id="export" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Экспорт</h2>
-        <p class="mt-1 text-xs text-slate-400">CSV открывается в Excel. Можно добавить к ссылке поиск: <code class="font-mono">?q=енот</code>.</p>
+        <h2 class="text-sm font-semibold">{{ _("Экспорт") }}</h2>
+        <p class="mt-1 text-xs text-slate-400">{{ _("CSV открывается в Excel. Можно добавить к ссылке поиск:") }} <code class="font-mono">?q={{ _("енот") }}</code>.</p>
         <div class="mt-3 flex flex-wrap gap-2">
-            <a href="/admin/export.csv" class="btn btn-ghost btn-sm">Все — CSV</a>
-            <a href="/admin/export.csv?status=open" class="btn btn-ghost btn-sm">Открытые — CSV</a>
-            <a href="/admin/export.csv?status=closed" class="btn btn-ghost btn-sm">Закрытые — CSV</a>
-            <a href="/admin/export.json" class="btn btn-ghost btn-sm">Все — JSON</a>
+            <a href="/admin/export.csv" class="btn btn-ghost btn-sm">{{ _("Все — CSV") }}</a>
+            <a href="/admin/export.csv?status=open" class="btn btn-ghost btn-sm">{{ _("Открытые — CSV") }}</a>
+            <a href="/admin/export.csv?status=closed" class="btn btn-ghost btn-sm">{{ _("Закрытые — CSV") }}</a>
+            <a href="/admin/export.json" class="btn btn-ghost btn-sm">{{ _("Все — JSON") }}</a>
         </div>
     </section>
 
     <section id="diagnostics" class="admin-section rounded-lg border border-slate-200 bg-white p-5">
-        <h2 class="text-sm font-semibold">Диагностика — состояние синка</h2>
+        <h2 class="text-sm font-semibold">{{ _("Диагностика — состояние синка") }}</h2>
         <dl class="status-grid mt-3 text-sm">
             <dt>UseDesk</dt>
-            <dd>{% if sync.usedesk_on %}<span class="chip chip-sm chip-ok">включён</span>{% else %}<span class="chip chip-sm">выключен</span>{% endif %}</dd>
-            <dt>Телеграм</dt>
-            <dd>{% if sync.telegram_on %}<span class="chip chip-sm chip-ok">включён</span>{% else %}<span class="chip chip-sm">выключен</span>{% endif %}</dd>
-            <dt>Последний цикл поллера</dt>
+            <dd>{% if sync.usedesk_on %}<span class="chip chip-sm chip-ok">{{ _("включён") }}</span>{% else %}<span class="chip chip-sm">{{ _("выключен") }}</span>{% endif %}</dd>
+            <dt>{{ _("Телеграм") }}</dt>
+            <dd>{% if sync.telegram_on %}<span class="chip chip-sm chip-ok">{{ _("включён") }}</span>{% else %}<span class="chip chip-sm">{{ _("выключен") }}</span>{% endif %}</dd>
+            <dt>{{ _("Последний цикл поллера") }}</dt>
             <dd>{{ sync_view.last_poll }}</dd>
-            <dt>Последнее изменение из UseDesk</dt>
+            <dt>{{ _("Последнее изменение из UseDesk") }}</dt>
             <dd>{{ sync_view.watermark }}</dd>
-            <dt>Ждут отправки</dt>
+            <dt>{{ _("Ждут отправки") }}</dt>
             <dd id="sync-queue">{{ sync.queue }}</dd>
-            <dt>Ошибок синхронизации</dt>
+            <dt>{{ _("Ошибок синхронизации") }}</dt>
             <dd><span id="sync-error-count" class="font-semibold">{{ sync.errors }}</span></dd>
             {% if sync.last_error %}
-            <dt>Последняя ошибка</dt>
+            <dt>{{ _("Последняя ошибка") }}</dt>
             <dd class="text-red-700">{{ sync_view.last_error_at }} — {{ sync.last_error }}</dd>
             {% endif %}
         </dl>
         <form method="post" action="/admin/diagnostics/reset-errors" class="mt-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <button type="submit" class="btn btn-ghost btn-sm">Сбросить счётчик</button>
+            <button type="submit" class="btn btn-ghost btn-sm">{{ _("Сбросить счётчик") }}</button>
         </form>
     </section>
 </div>

@@ -27,10 +27,12 @@ from app.auth import (
 )
 from app.config import get_settings
 from app.db import get_engine, init_db
+from app.i18n import LanguageMiddleware
 from app.importer import run_import
 from app.models import Ticket
 from app.routes.admin import router as admin_router
 from app.routes.auth import router as auth_router
+from app.routes.language import router as language_router
 from app.routes.profile import router as profile_router
 from app.routes.templates import router as templates_router
 from app.routes.tickets import router as tickets_router
@@ -99,9 +101,13 @@ app.add_middleware(SecurityHeadersMiddleware)
 # в нём CSRF-токен рядом с отражённым вводом (поиск), а сжатие такой страницы
 # открывает атаку BREACH по длине ответа. Картинки webp уже сжаты.
 app.add_middleware(StaticGZipMiddleware, minimum_size=1024)
+# Язык запроса (cookie panel-lang или язык по умолчанию) — снаружи всех, чтобы
+# экран настройки, ошибки и страницы видели один и тот же язык.
+app.add_middleware(LanguageMiddleware)
 register_auth(app)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 app.include_router(auth_router)
+app.include_router(language_router)
 app.include_router(users_router)
 app.include_router(profile_router)
 app.include_router(templates_router)

@@ -24,6 +24,7 @@ from app.auth import (
     templates,
 )
 from app.db import get_session
+from app.i18n import _
 from app.models import User
 
 router = APIRouter()
@@ -83,7 +84,7 @@ async def change_password(
     user = session.get(User, user_id)
     if user is None or not password:
         return _users_page_with_error(
-            request, session, "Укажите новый пароль", admin=admin
+            request, session, _("Укажите новый пароль"), admin=admin
         )
     rule = password_rule_error(password)
     if rule is not None:
@@ -103,14 +104,14 @@ async def deactivate_user(
     await parse_form(request)
     user = session.get(User, user_id)
     if user is None:
-        return _users_page_with_error(request, session, "Пользователь не найден", admin=admin)
+        return _users_page_with_error(request, session, _("Пользователь не найден"), admin=admin)
     if admin is not None and user.id == admin.id:
         return _users_page_with_error(
-            request, session, "Нельзя деактивировать себя", admin=admin
+            request, session, _("Нельзя деактивировать себя"), admin=admin
         )
     if user.role == "admin" and _active_admins(session) <= 1:
         return _users_page_with_error(
-            request, session, "Нельзя деактивировать последнего админа", admin=admin
+            request, session, _("Нельзя деактивировать последнего админа"), admin=admin
         )
     user.is_active = False
     session.commit()
@@ -127,7 +128,7 @@ async def activate_user(
     await parse_form(request)
     user = session.get(User, user_id)
     if user is None:
-        return _users_page_with_error(request, session, "Пользователь не найден", admin=admin)
+        return _users_page_with_error(request, session, _("Пользователь не найден"), admin=admin)
     user.is_active = True
     session.commit()
     return RedirectResponse("/users", status_code=303)
@@ -144,17 +145,17 @@ async def change_role(
     role = form.get("role", "")
     user = session.get(User, user_id)
     if user is None:
-        return _users_page_with_error(request, session, "Пользователь не найден", admin=admin)
+        return _users_page_with_error(request, session, _("Пользователь не найден"), admin=admin)
     if role not in ("admin", "operator"):
-        return _users_page_with_error(request, session, "Неизвестная роль", admin=admin)
+        return _users_page_with_error(request, session, _("Неизвестная роль"), admin=admin)
     if admin is not None and user.id == admin.id:
         return _users_page_with_error(
-            request, session, "Свою роль поменять нельзя", admin=admin
+            request, session, _("Свою роль поменять нельзя"), admin=admin
         )
     if user.role == "admin" and role == "operator" and user.is_active:
         if _active_admins(session) <= 1:
             return _users_page_with_error(
-                request, session, "Нельзя понизить последнего админа", admin=admin
+                request, session, _("Нельзя понизить последнего админа"), admin=admin
             )
     user.role = role
     session.commit()
@@ -174,12 +175,12 @@ LOGIN_MAX_LENGTH = 64
 
 def _validate_new_user(session: Session, login_value: str, password: str) -> str | None:
     if not login_value or not password:
-        return "Укажите логин и пароль"
+        return _("Укажите логин и пароль")
     if len(login_value) > LOGIN_MAX_LENGTH:
-        return f"Логин длиннее {LOGIN_MAX_LENGTH} символов"
+        return _("Логин длиннее {n} символов", n=LOGIN_MAX_LENGTH)
     existing = session.scalar(select(User).where(User.login == login_value))
     if existing is not None:
-        return "Логин уже занят"
+        return _("Логин уже занят")
     return password_rule_error(password)
 
 

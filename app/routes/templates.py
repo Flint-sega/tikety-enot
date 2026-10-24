@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.auth import current_user_dependency, parse_form, require, templates
+from app.i18n import N_, _
 from app.models import User
 from app.sync import SETTING_TEMPLATES_ENABLED, get_setting, set_setting
 from app.ticket_templates import (
@@ -32,9 +33,9 @@ router = APIRouter()
 
 PREFILL_NAME_LENGTH = 40
 DONE_MESSAGES = {
-    "created": "Шаблон создан — он уже есть на форме новой заявки",
-    "saved": "Шаблон сохранён",
-    "deleted": "Шаблон удалён",
+    "created": N_("Шаблон создан — он уже есть на форме новой заявки"),
+    "saved": N_("Шаблон сохранён"),
+    "deleted": N_("Шаблон удалён"),
 }
 
 
@@ -68,7 +69,7 @@ def render_templates_page(
             "shared": [row for row in rows if not row["mine"]],
             "form": form or {"name": "", "title_tpl": "", "description_tpl": "", "shared": ""},
             "error": error,
-            "done_message": DONE_MESSAGES.get(done),
+            "done_message": _(DONE_MESSAGES[done]) if done in DONE_MESSAGES else None,
             "buttons_on": get_setting(SETTING_TEMPLATES_ENABLED, "1") == "1",
         },
         status_code=status_code,
@@ -118,9 +119,9 @@ async def create_template_form(
 def _editable_or_error(user: User, template_id: int):
     template = template_or_none(template_id)
     if template is None or not can_see(user, template):
-        return None, HTMLResponse("Шаблон не найден", status_code=404)
+        return None, HTMLResponse(_("Шаблон не найден"), status_code=404)
     if not can_edit(user, template):
-        return None, HTMLResponse("Этот шаблон может править только автор", status_code=403)
+        return None, HTMLResponse(_("Этот шаблон может править только автор"), status_code=403)
     return template, None
 
 

@@ -32,6 +32,7 @@ from app.auth import (
     verify_password,
 )
 from app.db import get_session
+from app.i18n import N_, _
 from app.models import User
 from app.sync import (
     personal_appearance_allowed,
@@ -41,11 +42,12 @@ from app.sync import (
 
 router = APIRouter()
 
-APPEARANCE_FORBIDDEN = "Внешний вид задаёт администратор: личные настройки выключены"
+APPEARANCE_FORBIDDEN = N_("Внешний вид задаёт администратор: личные настройки выключены")
+WRONG_CURRENT_PASSWORD = N_("Текущий пароль неверный")
 DONE_MESSAGES = {
-    "password": "Пароль изменён",
-    "appearance": "Внешний вид сохранён",
-    "reset": "Вернули общий вид — как у всех",
+    "password": N_("Пароль изменён"),
+    "appearance": N_("Внешний вид сохранён"),
+    "reset": N_("Вернули общий вид — как у всех"),
 }
 
 
@@ -66,7 +68,7 @@ def _profile_page(
             "tab": "profile",
             "password_error": password_error,
             "appearance_error": appearance_error,
-            "done_message": DONE_MESSAGES.get(done),
+            "done_message": _(DONE_MESSAGES[done]) if done in DONE_MESSAGES else None,
         },
         status_code=status_code,
     )
@@ -86,16 +88,16 @@ def _password_change_error(user: User, form: dict[str, str]) -> str | None:
     new = form.get("new_password", "")
     repeat = form.get("new_password_repeat", "")
     if not current or not new:
-        return "Укажите текущий и новый пароль"
+        return _("Укажите текущий и новый пароль")
     if not verify_password(current, user.password_hash):
-        return "Текущий пароль неверный"
+        return _(WRONG_CURRENT_PASSWORD)
     rule = password_rule_error(new)
     if rule is not None:
         return rule
     if new != repeat:
-        return "Новый пароль и повтор не совпадают"
+        return _("Новый пароль и повтор не совпадают")
     if new == current:
-        return "Новый пароль совпадает с текущим"
+        return _("Новый пароль совпадает с текущим")
     return None
 
 
@@ -108,10 +110,10 @@ async def change_own_password(
     form = await parse_form(request)
     throttle_key = (user.login, client_ip(request))
     if login_is_blocked(throttle_key):
-        return _profile_page(request, user, password_error=THROTTLE_MESSAGE, status_code=429)
+        return _profile_page(request, user, password_error=_(THROTTLE_MESSAGE), status_code=429)
     error = _password_change_error(user, form)
     if error is not None:
-        if error == "Текущий пароль неверный":
+        if error == _(WRONG_CURRENT_PASSWORD):
             record_login_failure(throttle_key)
         return _profile_page(request, user, password_error=error)
     reset_login_failures(throttle_key)
@@ -133,9 +135,9 @@ async def save_own_appearance(
     from_fetch = request.headers.get("X-Requested-With") == "fetch"
     if not personal_appearance_allowed():
         if from_fetch:
-            return HTMLResponse(APPEARANCE_FORBIDDEN, status_code=403)
+            return HTMLResponse(_(APPEARANCE_FORBIDDEN), status_code=403)
         return _profile_page(
-            request, user, appearance_error=APPEARANCE_FORBIDDEN, status_code=403
+            request, user, appearance_error=_(APPEARANCE_FORBIDDEN), status_code=403
         )
     if form.get("reset") == "1":
         reset_user_appearance(user.id)

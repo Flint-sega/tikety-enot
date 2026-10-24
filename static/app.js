@@ -23,13 +23,15 @@
     });
 
     /* Подтверждения: форма с data-confirm спрашивает перед отправкой.
-       Тексты статичные (без интерполяции данных) — XSS-поверхности нет. */
+       Тексты приходят из шаблона уже на языке страницы; window.confirm показывает
+       их как простой текст — XSS-поверхности нет. */
+    var RU = document.documentElement.lang !== 'en';
     document.addEventListener('submit', function (event) {
         var form = event.target;
         if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-confirm')) {
             return;
         }
-        var message = form.getAttribute('data-confirm') || 'Вы уверены?';
+        var message = form.getAttribute('data-confirm') || (RU ? 'Вы уверены?' : 'Are you sure?');
         if (!window.confirm(message)) {
             event.preventDefault();
         }
@@ -42,7 +44,7 @@
             return;
         }
         if (form.querySelector('input[type="checkbox"]:checked')) {
-            if (!window.confirm('Отмеченный ключ будет очищен: панель вернётся к значению из .env или интеграция выключится. Продолжить?')) {
+            if (!window.confirm(form.getAttribute('data-confirm-clear') || (RU ? 'Продолжить?' : 'Continue?'))) {
                 event.preventDefault();
             }
         }
@@ -216,7 +218,9 @@
                 toBlock.style.display = range ? '' : 'none';
             }
             if (fromLabel) {
-                fromLabel.textContent = range ? 'С' : 'Время';
+                fromLabel.textContent = range
+                    ? fromLabel.getAttribute('data-label-from') || 'С'
+                    : fromLabel.getAttribute('data-label-time') || 'Время';
             }
         };
         widget.addEventListener('change', sync);

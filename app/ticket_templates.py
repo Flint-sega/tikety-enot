@@ -13,6 +13,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_engine
+from app.i18n import _
 from app.models import Template, User
 
 NAME_MAX_LENGTH = 128
@@ -30,15 +31,15 @@ def template_fields(form: dict[str, str]) -> dict[str, str]:
 def validate_template(fields: dict[str, str]) -> str | None:
     """Русская ошибка для формы шаблона; None — всё заполнено и влезает."""
     if not fields["name"]:
-        return "Укажите название шаблона"
+        return _("Укажите название шаблона")
     if not fields["title_tpl"]:
-        return "Укажите маску заголовка"
+        return _("Укажите маску заголовка")
     if not fields["description_tpl"]:
-        return "Укажите маску описания"
+        return _("Укажите маску описания")
     if len(fields["name"]) > NAME_MAX_LENGTH:
-        return f"Название длиннее {NAME_MAX_LENGTH} символов"
+        return _("Название длиннее {n} символов", n=NAME_MAX_LENGTH)
     if max(len(fields["title_tpl"]), len(fields["description_tpl"])) > TEXT_MAX_LENGTH:
-        return f"Маска длиннее {TEXT_MAX_LENGTH} символов"
+        return _("Маска длиннее {n} символов", n=TEXT_MAX_LENGTH)
     return None
 
 
