@@ -50,7 +50,7 @@ The panel was written for one small team and does that job: 353 automated tests 
 
 ### What happens next
 
-I will keep developing it if people need it. If the panel is useful to you and something is missing, open an [issue](https://github.com/Flint-sega/tikety-enot/issues): if there is interest, I will add things. If not, the project stays as it is. The code is open and simple enough to rework on your own; see [For developers](#for-developers) for where to start.
+I will keep developing it if people need it. If the panel is useful to you and something is missing, open an [issue](https://github.com/Flint-sega/tikety-enot/issues): if there is interest, I will add things. If not, the project stays as it is. The code is under the [MIT license](LICENSE): take it, change it and use it however you like, commercial projects included, as long as you keep the license file. See [For developers](#for-developers) for where to start.
 
 ## Try it with demo data
 
@@ -191,3 +191,7 @@ Where to start reading:
 - `templates/` and `static/`: Jinja2, HTMX and CSS with no build step; themes are described in [docs/themes.en.md](docs/themes.en.md).
 
 Tests never make real HTTP calls: the UseDesk and Telegram clients are replaced with `httpx.MockTransport`.
+
+## License
+
+[MIT](LICENSE) © 2026 Flint-sega
