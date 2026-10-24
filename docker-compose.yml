@@ -1,0 +1,49 @@
+# Тикеты Енот v2 — локальный запуск панели. Ключи — в .env (см. README.md)
+services:
+  app:
+    build: .
+    container_name: tikety-panel
+    # Публикация строго на localhost: панель видна только с этой машины.
+    # Наружу (для команды) её открывает nginx на сервере — пример в README.md.
+    ports:
+      - "127.0.0.1:8072:8000"
+    volumes:
+      # Вся база панели живёт здесь: бэкап = копия папки data/
+      - ./data:/app/data
+      # seed в томе — чтобы новый файл для импорта не требовал пересборки образа
+      - ./seed:/app/seed:ro
+    # Панель работает и без .env (интеграции молча выключены), поэтому required: false
+    env_file:
+      - path: .env
+        required: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # HTTPS для хостинга: включается профилем — DOMAIN=домен bash scripts/install.sh
+  # (или вручную: docker compose --profile https up -d). Без профиля не запускается.
+  caddy:
+    image: caddy:2.8.4-alpine
+    container_name: tikety-https
+    profiles: ["https"]
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

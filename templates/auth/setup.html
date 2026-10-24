@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Панель не инициализирована — Тикеты Енот{% endblock %}
+{% block content %}
+<div class="form-center mx-auto max-w-lg">
+    <div class="rounded-lg border border-amber-200 bg-amber-50 p-6">
+        <h1 class="text-lg font-semibold text-amber-900">Панель не инициализирована</h1>
+        <p class="mt-2 text-sm text-amber-800">
+            Панель не инициализирована: задайте ADMIN_LOGIN/ADMIN_PASSWORD в .env
+        </p>
+        <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+            <li>
+                Откройте файл <code class="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.env</code>
+                в корне проекта (если его нет — скопируйте из
+                <code class="rounded bg-white px-1.5 py-0.5 font-mono text-xs">.env.example</code>).
+            </li>
+            <li>
+                Впишите логин и пароль первого администратора:
+                <pre class="mt-1 overflow-x-auto rounded-md bg-slate-900 p-3 text-xs text-slate-100"><code>ADMIN_LOGIN=ваш-логин
+ADMIN_PASSWORD=ваш-пароль</code></pre>
+            </li>
+            <li>Перезапустите панель — администратор создастся автоматически при старте.</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

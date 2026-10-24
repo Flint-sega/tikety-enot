@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Пользователи — Тикеты Енот{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1 class="page-title">Пользователи</h1>
+</div>
+
+<div class="page-panel">
+{% if error %}
+<p class="alert mb-4">{{ error }}</p>
+{% endif %}
+
+<section class="rounded-lg border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold">Создать оператора</h2>
+    <form method="post" action="/users/create" class="form-row mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div>
+            <label for="new-login" class="lbl">Логин</label>
+            <input id="new-login" name="login" value="{{ form_login }}" required autocomplete="off" class="field">
+        </div>
+        <div>
+            <label for="new-password" class="lbl">Пароль (от 8 символов)</label>
+            <input id="new-password" name="password" type="password" required minlength="8" autocomplete="new-password" class="field">
+        </div>
+        <button type="submit" class="btn btn-blue">Создать</button>
+    </form>
+</section>
+
+<div class="user-list mt-4">
+    {% for user in users %}
+    <article class="user-row{% if not user.is_active %} user-row-off{% endif %}">
+        <div class="user-main">
+            <span class="user-login">{{ user.login }}</span>
+            <span class="chip chip-sm{% if user.role == 'admin' %} chip-soon{% endif %}">{{ 'админ' if user.role == 'admin' else 'оператор' }}</span>
+            {% if user.is_active %}
+            <span class="chip chip-sm chip-ok">активен</span>
+            {% else %}
+            <span class="chip chip-sm">деактивирован</span>
+            {% endif %}
+            {% if admin is not none and user.id == admin.id %}<span class="hint">это вы</span>{% endif %}
+        </div>
+        <div class="user-actions">
+            <form method="post" action="/users/{{ user.id }}/password" class="user-password">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input name="password" type="password" placeholder="новый пароль (8+)" required minlength="8" autocomplete="new-password"
+                       aria-label="Новый пароль для {{ user.login }}" class="field">
+                <button type="submit" class="btn btn-ghost btn-sm">Сменить пароль</button>
+            </form>
+            {% if admin is not none and user.id != admin.id %}
+            <form method="post" action="/users/{{ user.id }}/role">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="role" value="{{ 'operator' if user.role == 'admin' else 'admin' }}">
+                <button type="submit" class="btn btn-ghost btn-sm">{{ 'Сделать оператором' if user.role == 'admin' else 'Сделать админом' }}</button>
+            </form>
+            {% if user.is_active %}
+            <form method="post" action="/users/{{ user.id }}/deactivate" data-confirm="Деактивировать {{ user.login }}? Войти он не сможет, история заявок сохранится.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-ghost btn-sm btn-danger-text">Деактивировать</button>
+            </form>
+            {% else %}
+            <form method="post" action="/users/{{ user.id }}/activate">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn btn-green btn-sm">Активировать</button>
+            </form>
+            {% endif %}
+            {% endif %}
+        </div>
+    </article>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

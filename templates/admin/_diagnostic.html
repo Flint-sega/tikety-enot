@@ -1,0 +1,12 @@
+<div id="diag-{{ name }}" class="flex items-center justify-between gap-4 py-3">
+    <div>
+        <p class="text-sm font-medium text-slate-800">{{ label }}</p>
+        {% if result %}
+        <p class="mt-1 text-xs {% if result.ok %}text-emerald-700{% else %}text-red-700{% endif %}">{{ result.text }}</p>
+        {% endif %}
+    </div>
+    <form hx-post="/admin/diagnostics/test-{{ name }}" hx-target="#diag-{{ name }}" hx-swap="outerHTML">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100">{{ label }}</button>
+    </form>
+</div>

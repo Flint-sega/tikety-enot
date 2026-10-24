@@ -1,0 +1,39 @@
+<div id="planned-widget" class="rounded-lg border border-slate-200 bg-slate-100 p-3">
+    <div class="presets" aria-label="Быстрое время">
+        <button type="button" class="chip chip-soon" data-planned-preset="night">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke-linejoin="round"/></svg>
+            Ночью 02:00
+        </button>
+        <button type="button" class="chip" data-planned-preset="tonight">Сегодня 23:00</button>
+        <button type="button" class="chip" data-planned-preset="tomorrow">Завтра 10:00</button>
+        <button type="button" class="chip" data-planned-preset="none">Без срока</button>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-slate-700">
+        <label class="flex items-center gap-2">
+            <input type="radio" name="planned_mode" value="exact" {% if form.planned_mode != 'range' %}checked{% endif %}>
+            Точное
+        </label>
+        <label class="flex items-center gap-2">
+            <input type="radio" name="planned_mode" value="range" {% if form.planned_mode == 'range' %}checked{% endif %}>
+            Диапазон
+        </label>
+    </div>
+    <div class="mt-2 grid grid-cols-2 gap-3">
+        <div>
+            <label for="planned_date" class="block text-xs font-medium text-slate-500">Дата</label>
+            <input id="planned_date" name="planned_date" type="date" value="{{ form.planned_date }}" class="field mt-1">
+        </div>
+        <div>
+            <label for="planned_time_from" data-planned-from-label class="block text-xs font-medium text-slate-500">Время</label>
+            <input id="planned_time_from" name="planned_time_from" type="time" value="{{ form.planned_time_from }}" class="field mt-1">
+        </div>
+        <div data-planned-to {% if form.planned_mode != 'range' %}style="display: none;"{% endif %}>
+            <label for="planned_time_to" class="block text-xs font-medium text-slate-500">До</label>
+            <input id="planned_time_to" name="planned_time_to" type="time" value="{{ form.planned_time_to }}" class="field mt-1">
+        </div>
+    </div>
+    {% if errors.planned %}
+    <p class="err">{{ errors.planned }}</p>
+    {% endif %}
+    <p class="hint mt-1">{{ planned_hint }}</p>
+</div>

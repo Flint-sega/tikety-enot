@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Вход — Тикеты Енот{% endblock %}
+{% block body_class %}hero-body{% endblock %}
+{% block head_extra %}{% if page_theme == 'new' %}<link rel="preload" as="image" href="/static/hero-bg.webp?v=1" fetchpriority="high">{% endif %}{% endblock %}
+{% block topbar %}{% endblock %}
+{% block main %}
+<main class="page-hero">
+    <div class="hero-wrap">
+        <div class="hero-card">
+            <img src="/static/raccoon-avatar.webp?v=1" alt="" class="hero-avatar" width="88" height="88" decoding="async">
+            <h1 class="hero-logo">Тикеты <span class="brand-accent">Енот</span></h1>
+            <p class="hero-sub">Вход в панель управления</p>
+            <form method="post" action="/login" class="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+                {% if error %}
+                <p class="alert">{{ error }}</p>
+                {% endif %}
+                <div class="login-field">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 20 C4 15.6 7.6 13.5 12 13.5 C16.4 13.5 20 15.6 20 20"/>
+                    </svg>
+                    <input id="login" name="login" value="{{ login }}" required autofocus placeholder="Логин" autocomplete="username" aria-label="Логин">
+                </div>
+                <div class="login-field">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <rect x="5" y="10.5" width="14" height="9" rx="2"/>
+                        <path d="M8 10.5 V8 a4 4 0 0 1 8 0 v2.5"/>
+                    </svg>
+                    <input id="password" name="password" type="password" required placeholder="Пароль" autocomplete="current-password" aria-label="Пароль">
+                    <button type="button" data-toggle-password="password" aria-label="Показать или скрыть пароль" class="login-eye">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M3 12 C5.5 7.5 8.5 5.5 12 5.5 C15.5 5.5 18.5 7.5 21 12 C18.5 16.5 15.5 18.5 12 18.5 C8.5 18.5 5.5 16.5 3 12 Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+                <button type="submit" class="btn btn-blue w-full" style="padding: 0.75rem;">Войти</button>
+            </form>
+        </div>
+        <img src="/static/raccoon-hero.webp?v=1" alt="" class="hero-raccoon" width="675" height="900" decoding="async">
+    </div>
+</main>
+{% endblock %}

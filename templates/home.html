@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Тикеты Енот{% endblock %}
+{% block body_class %}hero-body{% endblock %}
+{% block head_extra %}{% if page_theme == 'new' %}<link rel="preload" as="image" href="/static/hero-bg.webp?v=1" fetchpriority="high">{% endif %}{% endblock %}
+{% block topbar %}{% endblock %}
+{% block main %}
+<main class="page-hero">
+    <div class="hero-wrap">
+        <div class="hero-card">
+            <div class="hero-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 8.6 V7.5 a2 2 0 0 1 2 -2 h12 a2 2 0 0 1 2 2 v1.1 a2.4 2.4 0 0 0 0 4.8 v1.1 a2 2 0 0 1 -2 2 H6 a2 2 0 0 1 -2 -2 v-1.1 a2.4 2.4 0 0 0 0 -4.8 Z"/>
+                    <path d="M14.6 5.6 v2.2 M14.6 16.2 v2.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1 class="hero-logo">Тикеты <span class="brand-accent">Енот</span></h1>
+            <p class="hero-sub">Система управления заявками</p>
+            <nav class="menu" aria-label="Разделы">
+                <a href="/tickets?status=open" class="menu-btn menu-btn-open">
+                    <span class="menu-btn-label">
+                        <span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5.5" width="16" height="13" rx="2"/><path d="M4 10 h16"/></svg></span>
+                        Открытые заявки
+                    </span>
+                    <span class="menu-btn-meta">
+                        <span class="menu-pill">{{ overview.open }}</span>
+                        {% if overview.overdue %}<span class="menu-pill menu-pill-red" title="Просрочено">{{ overview.overdue }}<span class="menu-hide-sm"> просроч.</span></span>{% endif %}
+                    </span>
+                </a>
+                <a href="/tickets?status=closed" class="menu-btn menu-btn-history">
+                    <span class="menu-btn-label">
+                        <span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4.2 5 V9.4 H8.6"/><path d="M4.8 9.4 a7.8 7.8 0 1 1 -0.4 4"/><path d="M12 8.2 v4 l2.8 1.7"/></svg></span>
+                        История закрытых
+                    </span>
+                    <span class="menu-btn-meta" title="Закрыто сегодня"><span class="menu-hide-sm">сегодня</span> <span class="menu-pill">{{ closed_today }}</span></span>
+                </a>
+                <a href="/tickets/new" class="menu-btn menu-btn-create" data-hotkey-new>
+                    <span class="menu-btn-label">
+                        <span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 8.4 v7.2 M8.4 12 h7.2" stroke-linecap="round"/></svg></span>
+                        Создать заявку
+                    </span>
+                    <span class="menu-btn-meta"><span class="menu-pill" title="Горячая клавиша">N</span></span>
+                </a>
+            </nav>
+            <div class="hero-foot">
+                {% if overview.next_due %}
+                <span>Ближайшая: №{{ overview.next_due.number }}{% if overview.next_due.relative %} · {{ overview.next_due.relative }}{% endif %}</span>
+                {% endif %}
+                {% if user and user.role == 'admin' %}<a href="/admin">Админка</a>{% endif %}
+                <a href="/profile">Профиль</a>
+                {% if personal_allowed %}
+                <button type="button" id="theme-toggle" class="theme-btn" title="Тема">
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" stroke-linejoin="round"/></svg>
+                    <span data-theme-label>Тема</span>
+                </button>
+                {% endif %}
+                {% if user %}
+                <form method="post" action="/logout" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="theme-btn">Выйти ({{ user.login }})</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        <img src="/static/raccoon-hero.webp?v=1" alt="" class="hero-raccoon" width="675" height="900" decoding="async">
+    </div>
+</main>
+{% endblock %}

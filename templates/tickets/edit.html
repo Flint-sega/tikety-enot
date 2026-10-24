@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Заявка № {{ ticket.number }} — правка — Тикеты Енот{% endblock %}
+{% block content %}
+<div class="page-panel form-card">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <h1 class="text-lg font-semibold">Заявка № {{ ticket.number }}</h1>
+        <a href="/tickets?status={{ ticket.status }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; К списку</a>
+    </div>
+    <form method="post" action="/tickets/{{ ticket.id }}/edit" class="mt-4 space-y-4" data-hotkey-submit>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div>
+            <label for="title" class="lbl">Наименование <span class="text-red-600">*</span></label>
+            <input id="title" name="title" value="{{ form.title }}" class="field{% if errors.title %} field-error{% endif %}">
+            {% if errors.title %}<p class="err">{{ errors.title }}</p>{% endif %}
+        </div>
+        <div>
+            <label for="description" class="lbl">Описание <span class="text-red-600">*</span></label>
+            <textarea id="description" name="description" rows="5" class="field{% if errors.description %} field-error{% endif %}">{{ form.description }}</textarea>
+            {% if errors.description %}<p class="err">{{ errors.description }}</p>{% endif %}
+        </div>
+        <div>
+            <span class="lbl">Когда выполнить (МСК)</span>
+            {% if form.planned_legacy %}
+            <div class="mb-2 rounded-lg border border-slate-200 bg-slate-100 p-3">
+                <label for="planned_legacy" class="block text-xs font-medium text-slate-500">Текущее значение</label>
+                <input id="planned_legacy" value="{{ form.planned_legacy }}" readonly class="field mt-1">
+            </div>
+            {% endif %}
+            {% if form.planned_has_value %}
+            <label class="mb-2 flex items-center gap-2 text-xs text-slate-600">
+                <input type="checkbox" name="planned_clear" value="1" {% if form.planned_clear %}checked{% endif %}>
+                Убрать текущее значение
+            </label>
+            {% endif %}
+            {% with planned_hint = "Заполненный блок заменяет текущее значение" %}{% include "tickets/_planned_widget.html" %}{% endwith %}
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="btn btn-blue">Сохранить</button>
+            <a href="/tickets?status={{ ticket.status }}" class="btn btn-ghost">Отмена</a>
+            <span class="hint ml-auto">Ctrl+Enter — сохранить</span>
+        </div>
+    </form>
+</div>
+{% endblock %}

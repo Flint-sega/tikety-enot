@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Мой профиль — Тикеты Енот{% endblock %}
+{% block content %}
+<div class="form-card">
+    {% if done_message %}
+    <p class="flash" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ done_message }}
+    </p>
+    {% endif %}
+    <div class="page-head">
+        <h1 class="page-title">Мой профиль</h1>
+        <span class="text-sm on-bg-muted">{{ user.login }} · {{ 'админ' if user.role == 'admin' else 'оператор' }}</span>
+    </div>
+
+    <section class="page-panel" id="appearance">
+        <h2 class="text-lg font-semibold">Внешний вид</h2>
+        {% if personal_allowed %}
+        <p class="hint mt-1">Только для вас и на любом устройстве: тема и форма плашек и кнопок.</p>
+        {% if appearance_error %}<p class="alert mt-3">{{ appearance_error }}</p>{% endif %}
+        <form method="post" action="/profile/appearance" class="mt-4 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <fieldset>
+                <legend class="lbl">Тема</legend>
+                <div class="choice-row">
+                    {% for value, label in [('new', 'Ночь'), ('classic', 'Классика')] %}
+                    <label class="choice">
+                        <input type="radio" name="theme" value="{{ value }}"{% if page_theme == value %} checked{% endif %}>
+                        <span class="swatch swatch-{{ value }}" aria-hidden="true"></span>
+                        {{ label }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend class="lbl">Плашки</legend>
+                <div class="choice-row">
+                    {% for value, label in [('round', 'Круглые'), ('square', 'Прямоугольные')] %}
+                    <label class="choice"><input type="radio" name="card_shape" value="{{ value }}"{% if page_cards == value %} checked{% endif %}> {{ label }}</label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend class="lbl">Кнопки</legend>
+                <div class="choice-row">
+                    {% for value, label in [('round', 'Круглые'), ('square', 'Прямоугольные')] %}
+                    <label class="choice"><input type="radio" name="button_shape" value="{{ value }}"{% if page_buttons == value %} checked{% endif %}> {{ label }}</label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="submit" class="btn btn-blue">Сохранить вид</button>
+                <button type="submit" name="reset" value="1" class="btn btn-ghost">Как у всех</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="mt-2 text-sm text-slate-600">Внешний вид задаёт администратор — личные настройки выключены.</p>
+        {% endif %}
+    </section>
+
+    <section class="page-panel mt-6" id="password">
+        <h2 class="text-lg font-semibold">Сменить пароль</h2>
+        <p class="hint mt-1">Не короче 8 символов. После смены на других устройствах нужно будет войти заново.</p>
+        {% if password_error %}<p class="alert mt-3">{{ password_error }}</p>{% endif %}
+        <form method="post" action="/profile/password" class="mt-4 space-y-4" data-hotkey-submit>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="text" name="username" value="{{ user.login }}" autocomplete="username" hidden>
+            <div>
+                <label for="current_password" class="lbl">Текущий пароль</label>
+                <input id="current_password" name="current_password" type="password" required autocomplete="current-password" class="field">
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="new_password" class="lbl">Новый пароль</label>
+                    <input id="new_password" name="new_password" type="password" required minlength="8" autocomplete="new-password" class="field">
+                </div>
+                <div>
+                    <label for="new_password_repeat" class="lbl">Повтор нового</label>
+                    <input id="new_password_repeat" name="new_password_repeat" type="password" required minlength="8" autocomplete="new-password" class="field">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-blue">Сменить пароль</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

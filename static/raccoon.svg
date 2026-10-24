@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 116">
+  <!-- уши: скруглённые -->
+  <path d="M23 46 Q15 20 17 9 Q31 13 48 27 Z" fill="#3f4a5a" stroke="#3f4a5a" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M105 46 Q113 20 111 9 Q97 13 80 27 Z" fill="#3f4a5a" stroke="#3f4a5a" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M28 38 Q24 20 25 14 Q35 18 45 27 Z" fill="#34d399" stroke="#34d399" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M100 38 Q104 20 103 14 Q93 18 83 27 Z" fill="#34d399" stroke="#34d399" stroke-width="5" stroke-linejoin="round"/>
+  <!-- голова -->
+  <ellipse cx="64" cy="66" rx="45" ry="41" fill="#6b7280"/>
+  <path d="M64 25 C41 25 25 41 23 60 C35 51 49 47 64 47 C79 47 93 51 105 60 C103 41 87 25 64 25 Z" fill="#9ca3af"/>
+  <!-- бакенбарды -->
+  <circle cx="36" cy="80" r="19" fill="#e5e7eb"/>
+  <circle cx="92" cy="80" r="19" fill="#e5e7eb"/>
+  <ellipse cx="64" cy="86" rx="22" ry="15" fill="#f9fafb"/>
+  <!-- маска вокруг глаз -->
+  <path d="M19 58 C29 45 47 40 64 40 C81 40 99 45 109 58 C105 73 92 79 81 74 C73 71 69 65 64 65 C59 65 55 71 47 74 C36 79 23 73 19 58 Z" fill="#111827"/>
+  <!-- глаза -->
+  <circle cx="46" cy="58" r="6.5" fill="#f9fafb"/>
+  <circle cx="82" cy="58" r="6.5" fill="#f9fafb"/>
+  <circle cx="46.6" cy="58.6" r="3.2" fill="#0f172a"/>
+  <circle cx="82.6" cy="58.6" r="3.2" fill="#0f172a"/>
+  <circle cx="45.4" cy="57.2" r="1.1" fill="#f9fafb"/>
+  <circle cx="81.4" cy="57.2" r="1.1" fill="#f9fafb"/>
+  <!-- нос и рот -->
+  <path d="M57 79 L71 79 L64 88 Z" fill="#111827"/>
+  <path d="M64 88 L64 92 M64 92 Q58 97 52 94 M64 92 Q70 97 76 94" stroke="#111827" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</svg>

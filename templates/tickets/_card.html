@@ -1,0 +1,68 @@
+{% set t = card.ticket %}
+{% set pv = card.planned %}
+<article class="card stripe-{{ 'closed' if t.status == 'closed' else (pv.urgency or 'none') }}" data-ticket-id="{{ t.id }}" data-status="{{ t.status }}">
+    <div class="card-head">
+        <span class="num{% if t.status == 'closed' %} num-green{% endif %}">№{{ t.number }}</span>
+        <h3 class="card-title">{{ t.title }}</h3>
+        {% if pv.label %}
+        <span class="chip{% if t.status == 'open' and pv.urgency == 'overdue' %} chip-overdue{% elif t.status == 'open' and pv.urgency == 'soon' %} chip-soon{% endif %}" title="Плановое время (МСК)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5" stroke-linecap="round"/></svg>
+            {{ pv.label }}{% if t.status == 'open' and pv.relative %} — {{ pv.relative }}{% endif %}
+        </span>
+        {% endif %}
+    </div>
+    <div class="card-desc"><p class="card-desc-text">{{ t.description }}</p></div>
+    {% if t.status == 'closed' %}
+    <p class="mt-3 text-sm text-slate-500">Закрыта {{ card.closed_at_msk }} МСК{% if card.closed_by_login %} · {{ card.closed_by_login }}{% endif %}{% if t.comment %} · «{{ t.comment }}»{% endif %}</p>
+    {% endif %}
+    <div class="card-foot">
+        <div class="card-meta">
+            {% if t.source == 'usedesk' %}<span>из UseDesk</span>{% endif %}
+            {% if card.created_by_login %}<span>создал(а) {{ card.created_by_login }}</span>{% endif %}
+            {% if t.usedesk_activity %}<span>Активность в UseDesk: {{ card.usedesk_activity_msk }} МСК</span>{% endif %}
+            {% if t.sync_state == 'pending' %}
+            <span class="chip chip-sm chip-soon">Отправляется…</span>
+            {% elif t.sync_state == 'error' %}
+            <span class="chip chip-sm chip-overdue">Не отправлено</span>
+            {% endif %}
+            <button type="button" class="link-btn" data-modal-open
+                    hx-get="/tickets/{{ t.id }}/full" hx-target="#modal-content" hx-swap="innerHTML">Показать полностью</button>
+            <a href="/templates?from={{ t.id }}#create" class="link-btn">Сохранить как шаблон</a>
+        </div>
+        <div class="card-actions">
+            <form method="post" action="/tickets/{{ t.id }}/delete" data-confirm="Удалить заявку №{{ t.number }} безвозвратно?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn-icon btn-icon-danger" title="Удалить" aria-label="Удалить заявку №{{ t.number }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6.5 7l1 12.5h9L17.5 7M9.5 7V4.5h5V7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </form>
+            <a href="/tickets/{{ t.id }}/edit" class="btn btn-ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z" stroke-linejoin="round"/></svg>
+                Изменить
+            </a>
+            {% if t.status == 'open' %}
+            <details class="close-box">
+                <summary class="btn btn-green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Закрыть
+                </summary>
+            </details>
+            {% endif %}
+        </div>
+    </div>
+    {% if t.status == 'open' %}
+    <form method="post" action="/tickets/{{ t.id }}/close" class="close-form" data-close-for="{{ t.id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="chips">
+            <span>Комментарий:</span>
+            <button type="button" class="chip chip-ok" data-comment-fill="Готово">Готово</button>
+            <button type="button" class="chip" data-comment-fill="Перенесено">Перенесено</button>
+            <button type="button" class="chip" data-comment-fill="">без комментария</button>
+        </div>
+        <div class="row">
+            <input name="comment" placeholder="или свой текст (необязательно)" maxlength="8192" aria-label="Комментарий при закрытии">
+            <button type="submit" class="btn btn-green">Закрыть №{{ t.number }}</button>
+        </div>
+    </form>
+    {% endif %}
+</article>

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Открытые заявки' if current_status == 'open' else 'История' }} — Тикеты Енот{% endblock %}
+{% block content %}
+{% if done_message %}
+<p class="flash" role="status">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    {{ done_message }}
+</p>
+{% endif %}
+{% if error %}
+<p class="alert mb-4">{{ error }}</p>
+{% endif %}
+
+<div class="page-head">
+    <h1 class="page-title">{{ 'Открытые заявки' if current_status == 'open' else 'История закрытых' }}</h1>
+    <div class="flex flex-wrap gap-2 text-xs on-bg-muted">
+        <span>Открыто: {{ summary.open }}</span>
+        <span>Закрыто сегодня: {{ summary.closed_today }}</span>
+        <span>За 7 дней: {{ summary.closed_week }}</span>
+    </div>
+</div>
+
+<form method="get" action="/tickets" role="search"
+      hx-get="/tickets" hx-trigger="input changed delay:300ms from:input[name='q'], change from:.filters-body input, submit"
+      hx-target="#ticket-list" hx-select="#ticket-list" hx-swap="outerHTML" hx-push-url="true">
+    <input type="hidden" name="status" value="{{ current_status }}">
+    <div class="flex flex-wrap items-center gap-2">
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 L21 21" stroke-linecap="round"/></svg>
+            <input name="q" value="{{ q }}" type="search" autocomplete="off" data-hotkey-search
+                   placeholder="Поиск: номер, название, описание, комментарий" aria-label="Поиск по заявкам">
+            <span class="kbd" aria-hidden="true">/</span>
+        </div>
+        <noscript><button type="submit" class="btn btn-blue">Найти</button></noscript>
+    </div>
+    <details class="filters"{% if filter_active %} open{% endif %}>
+        <summary>
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4" stroke-linecap="round"/></svg>
+            Период исполнения{% if filter_active %} · задан{% endif %}
+        </summary>
+        <div class="filters-body">
+            <input type="date" name="date_from" value="{{ date_from }}" aria-label="Исполнение с">
+            <input type="time" name="time_from" value="{{ time_from }}" aria-label="Время с">
+            <span class="on-bg-muted">&mdash;</span>
+            <input type="date" name="date_to" value="{{ date_to }}" aria-label="Исполнение по">
+            <input type="time" name="time_to" value="{{ time_to }}" aria-label="Время по">
+            {% if filter_active %}<a href="/tickets?status={{ current_status }}" class="text-xs on-bg-muted hover:underline">сбросить</a>{% endif %}
+        </div>
+    </details>
+</form>
+
+<div id="ticket-list">
+{% if groups %}
+    {% for group in groups %}
+    <h2 class="group-title group-{{ group.key }}">
+        {% if group.key == 'overdue' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4 L21 19 H3 Z" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.5" stroke-linecap="round"/></svg>
+        {% elif group.key == 'soon' %}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5" stroke-linecap="round"/></svg>
+        {% endif %}
+        {{ group.title }} · {{ group.cards|length }}
+    </h2>
+    {% for card in group.cards %}{% include "tickets/_card.html" %}{% endfor %}
+    {% endfor %}
+{% elif cards %}
+    <div class="mt-4">
+    {% for card in cards %}{% include "tickets/_card.html" %}{% endfor %}
+    </div>
+{% elif hist_groups %}
+    {% for group in hist_groups %}
+    {% if group.title %}<h2 class="group-title">{{ group.title }} · {{ group.rows|length }}</h2>{% endif %}
+    <div class="hist{% if not group.title %} mt-4{% endif %}">
+        {% for card in group.rows %}{% include "tickets/_history_row.html" %}{% endfor %}
+    </div>
+    {% endfor %}
+{% else %}
+    {% if q or filter_active %}
+    <p class="empty">Ничего не найдено</p>
+    {% elif current_status == 'open' %}
+    <div class="empty">
+        <p>Открытых заявок нет — всё сделано</p>
+        <a href="/tickets/new" class="btn btn-purple mt-3">Создать заявку</a>
+    </div>
+    {% else %}
+    <p class="empty">Закрытых заявок пока нет</p>
+    {% endif %}
+{% endif %}
+
+{% if pages > 1 %}
+<nav class="pager" aria-label="Страницы">
+    {% set list_query %}status={{ current_status }}&amp;q={{ q|urlencode }}{{ filter_qs }}{% endset %}
+    {% if page > 1 %}<a href="/tickets?{{ list_query }}&amp;page={{ page - 1 }}" aria-label="Назад">&larr;</a>{% endif %}
+    {% for p in page_numbers %}
+    {% if p is none %}<span class="gap">…</span>
+    {% elif p == page %}<span class="on" aria-current="page">{{ p }}</span>
+    {% else %}<a href="/tickets?{{ list_query }}&amp;page={{ p }}">{{ p }}</a>{% endif %}
+    {% endfor %}
+    {% if page < pages %}<a href="/tickets?{{ list_query }}&amp;page={{ page + 1 }}" aria-label="Вперёд">&rarr;</a>{% endif %}
+</nav>
+{% endif %}
+</div>
+
+<dialog id="ticket-modal" class="w-full max-w-xl p-0 backdrop:bg-black/30">
+    <div class="p-5">
+        <div id="modal-content"></div>
+        <div class="mt-4 text-right">
+            <button type="button" data-modal-close class="btn btn-ghost btn-sm">Закрыть</button>
+        </div>
+    </div>
+</dialog>
+{% endblock %}

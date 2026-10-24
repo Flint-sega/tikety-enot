@@ -1,0 +1,13 @@
+<div id="feature-{{ feature.key }}" class="flex items-center justify-between gap-4 py-3">
+    <div>
+        <p class="text-sm font-medium text-slate-800">{{ feature.label }}</p>
+        <p class="text-xs text-slate-400">{{ feature.hint }}</p>
+    </div>
+    <form hx-post="/admin/features/{{ feature.key }}" hx-target="#feature-{{ feature.key }}" hx-swap="outerHTML">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="value" value="{{ '0' if feature.on else '1' }}">
+        <button type="submit" class="rounded-full px-3 py-1 text-xs font-medium {% if feature.on %}bg-emerald-600 text-emerald-950 hover:bg-emerald-500{% else %}bg-slate-200 text-slate-600 hover:bg-slate-300{% endif %}">
+            {{ 'Включена' if feature.on else 'Выключена' }}
+        </button>
+    </form>
+</div>

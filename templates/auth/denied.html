@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Нет доступа — Тикеты Енот{% endblock %}
+{% block content %}
+<div class="mx-auto mt-8 max-w-md">
+    <div class="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+        <h1 class="text-lg font-semibold text-red-800">Нет доступа</h1>
+        <p class="mt-2 text-sm text-red-700">
+            У вашей учётной записи нет прав на этот раздел. Обратитесь к администратору.
+        </p>
+        <div class="mt-4 flex flex-wrap justify-center gap-2">
+            <a href="/tickets" class="btn btn-blue">К заявкам</a>
+            <a href="/" class="btn btn-ghost">На главную</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

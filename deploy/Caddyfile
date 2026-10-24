@@ -1,0 +1,17 @@
+# Тикеты Енот v2 — HTTPS-фронт для хостинга (docker compose --profile https).
+# Сертификат Let's Encrypt Caddy получает и продлевает сам: нужен домен ($DOMAIN)
+# с A-записью на этот сервер и открытые порты 80 и 443.
+{$DOMAIN} {
+	# HTML не сжимаем (CSRF-токен + отражённый ввод = BREACH); статику сжимает сама панель.
+	reverse_proxy app:8000
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

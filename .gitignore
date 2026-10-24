@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+node_modules/
+__pycache__/
+.DS_Store
+*.pyc
+.venv/
+data/*.sqlite*
+nohup.out
+
+# файлы с реальными заявками в репозиторий не кладём — только локально
+seed/*
+!seed/README.md
