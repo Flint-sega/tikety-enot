@@ -68,7 +68,11 @@ def test_csrf_artifacts_survive_theme_markup(client, ui):
 
 
 def test_owner_images_served(client, ui):
-    for name in ("raccoon-hero.webp", "hero-bg.webp", "raccoon-avatar.webp", "favicon.png"):
+    images = (
+        "raccoon-hero.webp", "hero-bg.webp", "hero-bg-900.webp",
+        "raccoon-avatar.webp", "favicon.png",
+    )
+    for name in images:
         assert client.get(f"/static/{name}").status_code == 200, name
 
 

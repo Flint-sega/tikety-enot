@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{{ _("Тикеты Енот") }}{% endblock %}</title>
-    <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
+    <link rel="icon" href="/static/favicon.png?v=2" type="image/png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
     {% if csrf_token %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
-    <link rel="stylesheet" href="/static/tailwind.css?v=52">
+    <link rel="stylesheet" href="/static/tailwind.css?v=53">
     <script src="/static/theme.js?v=13" defer></script>
     <script src="/static/app.js?v=5" defer></script>
     <script src="/static/htmx.min.js?v=1" defer></script>
@@ -21,7 +21,7 @@
 <header class="topbar">
     <div class="topbar-in">
         <a href="/" class="brand" title="{{ _("На главную") }}">
-            <img src="/static/raccoon-avatar.webp?v=1" alt="" width="32" height="32" decoding="async">
+            <img src="/static/raccoon-avatar.webp?v=2" alt="" width="32" height="32" decoding="async">
             <span>{% include "_brand.html" %}</span>
         </a>
         <nav class="flex flex-wrap items-center gap-1" aria-label="{{ _("Разделы") }}">

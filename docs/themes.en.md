@@ -123,7 +123,7 @@ In Night, the sign-in and home background (`--hero-image`, `--backdrop`) points 
 - hide the raccoon: `--raccoon: none`;
 - skip images entirely, like Classic does: `--hero-image: var(--bg-image)`.
 
-Compress images to WebP. The Night background is about 115 KB at 1672 px wide.
+Compress images to WebP. The Night background is about 83 KB at 1672 px wide. On phones (up to 44rem) Night uses a smaller `hero-bg-900.webp`, about 35 KB: `--hero-image` and `--backdrop` are redefined in a media query after the theme blocks. Do the same if your background is heavy.
 
 ## Troubleshooting
 

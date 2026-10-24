@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ _("Вход") }} — {{ _("Тикеты Енот") }}{% endblock %}
 {% block body_class %}hero-body{% endblock %}
-{% block head_extra %}{% if page_theme == 'new' %}<link rel="preload" as="image" href="/static/hero-bg.webp?v=1" fetchpriority="high">{% endif %}{% endblock %}
+{% block head_extra %}{% if page_theme == 'new' %}<link rel="preload" as="image" href="/static/hero-bg.webp?v=2" media="(min-width: 44.01rem)" fetchpriority="high"><link rel="preload" as="image" href="/static/hero-bg-900.webp?v=1" media="(max-width: 44rem)" fetchpriority="high">{% endif %}{% endblock %}
 {% block topbar %}{% endblock %}
 {% block main %}
 <main class="page-hero">
     <div class="hero-wrap">
         <div class="hero-card">
-            <img src="/static/raccoon-avatar.webp?v=1" alt="" class="hero-avatar" width="88" height="88" decoding="async">
+            <img src="/static/raccoon-avatar.webp?v=2" alt="" class="hero-avatar" width="88" height="88" decoding="async">
             <h1 class="hero-logo">{% include "_brand.html" %}</h1>
             <p class="hero-sub">{{ _("Вход в панель управления") }}</p>
             <form method="post" action="/login" class="login-form">
@@ -40,7 +40,7 @@
             </form>
             <div class="hero-foot">{% with button_class = "theme-btn", full_label = true %}{% include "_lang_switch.html" %}{% endwith %}</div>
         </div>
-        <img src="/static/raccoon-hero.webp?v=1" alt="" class="hero-raccoon" width="675" height="900" decoding="async">
+        <img src="/static/raccoon-hero.webp?v=2" alt="" class="hero-raccoon" width="675" height="900" decoding="async">
     </div>
 </main>
 {% endblock %}

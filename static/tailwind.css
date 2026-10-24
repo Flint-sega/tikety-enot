@@ -212,7 +212,7 @@
     --hero-glow: 0 0 0 1px rgb(58 209 189 / 0.12), 0 30px 80px -30px rgb(58 209 189 / 0.45);
     --hero-color: #03070d;
     --hero-image: radial-gradient(55% 60% at 50% 50%, rgb(3 7 13 / 0.15), rgb(3 7 13 / 0.78)),
-        url('/static/hero-bg.webp?v=1');
+        url('/static/hero-bg.webp?v=2');
     --hero-size: cover, cover;
     --hero-position: center, center;
     --hero-repeat: no-repeat, no-repeat;
@@ -273,7 +273,7 @@
     --menu-pill-bg: #3ad1bd;
     --menu-pill-text: #06241c;
     /* рабочая колонка — узкая панель, как в Классике, на затемнённых джунглях */
-    --backdrop: linear-gradient(rgb(3 7 13 / 0.74), rgb(3 7 13 / 0.84)), url('/static/hero-bg.webp?v=1');
+    --backdrop: linear-gradient(rgb(3 7 13 / 0.74), rgb(3 7 13 / 0.84)), url('/static/hero-bg.webp?v=2');
     --page-max: 46rem;
     --page-max-wide: 50rem;
     --page-surface: rgb(10 20 36 / 0.9);
@@ -910,7 +910,7 @@ body.hero-body {
     justify-content: center;
 }
 .hero-icon svg { width: 3rem; height: 3rem; }
-.hero-avatar { width: 5.5rem; height: 5.5rem; margin: 0 auto 0.75rem; display: block; }
+.hero-avatar { width: 5.5rem; height: 5.5rem; margin: 0 auto 0.75rem; display: block; border-radius: 9999px; }
 .hero-raccoon {
     position: absolute;
     z-index: 2;
@@ -928,6 +928,14 @@ body.hero-body {
     .hero-raccoon { width: 16rem; left: calc(100% - 0.453 * 16rem); }
 }
 @media (max-width: 44rem) { .hero-raccoon { display: none; } }
+/* телефон: енот скрыт, а фон джунглей отдаём уменьшенным (900px, ~35 КБ вместо ~80) */
+@media (max-width: 44rem) {
+    :root[data-theme="new"] {
+        --hero-image: radial-gradient(55% 60% at 50% 50%, rgb(3 7 13 / 0.15), rgb(3 7 13 / 0.78)),
+            url('/static/hero-bg-900.webp?v=1');
+        --backdrop: linear-gradient(rgb(3 7 13 / 0.74), rgb(3 7 13 / 0.84)), url('/static/hero-bg-900.webp?v=1');
+    }
+}
 /* телефон в ландшафте: не растягивать hero на 100vh */
 @media (max-height: 520px) { .page-hero { min-height: auto; } }
 
