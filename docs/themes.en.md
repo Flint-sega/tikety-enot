@@ -52,7 +52,7 @@ Say you want a purple accent in Night instead of teal:
 
 1. Open `static/tailwind.css` and find the `:root[data-theme="new"]` block.
 2. Change the accent tokens: `--accent`, `--btn-primary`, `--btn-primary-hover`, `--brand`, `--menu-icon`, `--count-bg`, `--border-focus`. If the button got light, adjust `--on-primary`, the text color on it.
-3. In `templates/base.html`, bump the stylesheet version: `tailwind.css?v=56` becomes `?v=57`. Otherwise browsers keep showing the cached file.
+3. In `templates/base.html`, bump the stylesheet version: `tailwind.css?v=57` becomes `?v=58`. Otherwise browsers keep showing the cached file.
 4. Reload the page.
 
 Check text contrast. Regular text needs at least 4.5:1. DevTools makes this easy: click a color in the Styles panel and the browser shows the ratio.

@@ -53,7 +53,7 @@ The panel was written for one small team and does that job: 363 automated tests 
 
 ### What happens next
 
-I will keep developing it if people need it. If the panel is useful to you and something is missing, open an [issue](https://github.com/Flint-sega/tikety-enot/issues): if there is interest, I will add things. If not, the project stays as it is. The code is under the [MIT license](LICENSE): take it, change it and use it however you like, commercial projects included, as long as you keep the license file. See [For developers](#for-developers) for where to start.
+The project is no longer developed; this is the final version. The code is under the [MIT license](LICENSE): if the panel lacks something, take it as a starting point and build what you need. Change it and use it however you like, commercial projects included, as long as you keep the license file. See [For developers](#for-developers) for where to start.
 
 ## Try it with demo data
 

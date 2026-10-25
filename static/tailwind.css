@@ -775,7 +775,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
     color: var(--top-text);
 }
 .topbar-in {
-    max-width: 72rem;
+    max-width: 90rem;
     margin: 0 auto;
     padding: 0.5rem 1rem;
     display: flex;
@@ -1421,7 +1421,6 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 @media (min-width: 1600px) {
     html { font-size: 17px; }
     .page { max-width: var(--page-max-wide); }
-    .topbar-in { max-width: 80rem; }
 }
 @media (min-width: 2200px) {
     html { font-size: 18px; }
@@ -1431,9 +1430,21 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 @media (max-width: 440px) {
     .hero-card { padding: 1.5rem 1rem 1.25rem; }
 }
-/* планшет и узкий ноутбук: шапка в одну строку — тема и логин иконками */
-@media (max-width: 1100px) {
+/* ноутбук и планшет: шапка в одну строку. Сначала тема и логин становятся иконками,
+   а вкладки плотнее; уже 1280 px остаются только вторые часы (пояс из настройки),
+   уже 1200 px у лого остаётся только енот. На телефоне часы своей строкой, там видны оба. */
+@media (max-width: 1500px) {
     .topbar-user, .topbar [data-theme-label] { display: none; }
+}
+@media (min-width: 641px) and (max-width: 1500px) {
+    .topbar-in { column-gap: 0.35rem; }
+    .topbar .tab { padding-left: 0.45rem; padding-right: 0.45rem; }
+}
+@media (min-width: 641px) and (max-width: 1279px) {
+    .clock[data-clock-local] { display: none; }
+}
+@media (min-width: 641px) and (max-width: 1199px) {
+    .brand > span { display: none; }
 }
 @media (max-width: 640px) {
     .topbar { position: static; }
