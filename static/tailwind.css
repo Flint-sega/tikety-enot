@@ -1,12 +1,14 @@
 /* Тикеты Енот v2 — стили панели без сборщика и без CDN в рантайме.
-   Устройство: токены двух тем → сокращённый preflight → утилиты (имена Tailwind,
+   Устройство: токены трёх тем → шрифты Табло (@font-face) → сокращённый preflight → утилиты (имена Tailwind,
    значения из токенов) → компоненты (.topbar, .btn, .card, .chip, .page-hero …).
    Темы различаются ТОЛЬКО значениями токенов в блоках :root[data-theme=…];
    перекрашивать элементы селекторами по теме нельзя — именно это ломало
    пять старых тем. Исключения — фон страницы и hero (картинки), они ниже
    в разделе «Фон и hero» и тоже читают токены.
    Темы: new = «Ночь» (джунгли, енот; один акцент — бирюза #3ad1bd от очков енота),
-         classic = «Классика» (светлый строгий вид: точки, «enote», светлые карточки; акцент синий).
+         classic = «Классика» (светлый строгий вид: точки, «enote», светлые карточки; акцент синий),
+         tablo = «Табло» (светлый рабочий вид: холодный фон, белые плашки, индиго; Golos Text и JetBrains Mono).
+   Шрифты — тоже токены (--font-sans, --font-mono): Ночь и Классика на системных стеках.
    Статус заявки показывают только полоска слева и чип (--stripe-*, --chip-*);
    действия — --btn-primary (акцент темы) и --btn-success («Закрыть», успех). */
 
@@ -14,6 +16,9 @@
 :root,
 :root[data-theme="classic"] {
     color-scheme: light;
+    /* шрифты: системные стеки; Табло подменяет их своими файлами */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     /* страница */
     --bg: #111827;
     --bg-image: radial-gradient(circle, rgb(255 255 255 / 0.06) 12%, transparent 13%),
@@ -120,6 +125,8 @@
     --on-success: #ffffff;
     --count-bg: #2563eb;
     --count-text: #ffffff;
+    --count-red-bg: #e11d48;
+    --count-red-text: #ffffff;
     --stripe-overdue: #e11d48;
     --stripe-soon: #d97706;
     --stripe-later: #2563eb;
@@ -136,6 +143,18 @@
     --menu-icon: #93c5fd;
     --menu-pill-bg: #2563eb;
     --menu-pill-text: #ffffff;
+    /* табло главной (тёмная доска ближайших заявок) и рейка групп списка */
+    --board-bg: #111827;
+    --board-border: #374151;
+    --board-text: #f3f4f6;
+    --board-muted: #9ca3af;
+    --board-soft: #d1d5db;
+    --board-row-hover: rgb(255 255 255 / 0.06);
+    --board-row-overdue: rgb(225 29 72 / 0.2);
+    --board-overdue: #fda4af;
+    --board-soon: #fcd34d;
+    --board-link: #93c5fd;
+    --rail-bg: #1f2937;
 }
 
 /* --- форма элементов (админка → «Внешний вид»): data-cards / data-buttons на <html> ---
@@ -257,6 +276,8 @@
     --on-success: #06241c;
     --count-bg: #3ad1bd;
     --count-text: #06241c;
+    --count-red-bg: #e11d48;
+    --count-red-text: #ffffff;
     --stripe-overdue: #f2566f;
     --stripe-soon: #f0b43c;
     --stripe-later: #3ad1bd;
@@ -281,11 +302,196 @@
     --page-radius: 1rem;
     --page-pad: 1.5rem;
     --page-top: 1.5rem;
+    --board-bg: #060c14;
+    --board-border: #1c2a3c;
+    --board-text: #e8eef6;
+    --board-muted: #7f93ac;
+    --board-soft: #cbd6e4;
+    --board-row-hover: rgb(255 255 255 / 0.05);
+    --board-row-overdue: rgb(242 86 111 / 0.16);
+    --board-overdue: #ffa3b3;
+    --board-soon: #f7cf72;
+    --board-link: #3ad1bd;
+    --rail-bg: #0f1a2c;
+}
+
+/* --- токены: Табло — светлый рабочий вид с холста «Табло» (принят 24–25.10.2026):
+   холодный фон, белые поверхности, чернильный текст, один акцент (индиго), красный/
+   янтарный/зелёный только для состояний заявки. Шрифты темы — Golos Text и JetBrains
+   Mono из static/fonts (OFL), остальные темы остаются на системных стеках. Рабочая
+   область широкая и без «панели»: --page-surface прозрачный. --- */
+:root[data-theme="tablo"] {
+    color-scheme: light;
+    --font-sans: "Golos Text", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --bg: #eef1f5;
+    --bg-image: none;
+    --bg-image-size: auto;
+    --bg-image-repeat: no-repeat;
+    --bg-image-position: 0 0;
+    --on-bg: #101828;
+    --on-bg-muted: #475467;
+    --top: #ffffff;
+    --top-border: #e4e7ec;
+    --top-text: #101828;
+    --top-muted: #344054;
+    --top-tab: #eef1f5;
+    --top-ghost-border: #d0d5dd;
+    --surface: #ffffff;
+    --surface-image: none;
+    --surface-2: #eef1f5;
+    --surface-3: #e4e7ec;
+    --surface-4: #d0d5dd;
+    --panel: #ffffff;
+    --panel-border: #e4e7ec;
+    --text: #101828;
+    --text-soft: #344054;
+    --text-muted: #475467;
+    --text-faint: #667085;
+    --text-on-bg: #475467;
+    --placeholder: #667085;
+    --border-soft: #e4e7ec;
+    --border: #e4e7ec;
+    --border-strong: #d0d5dd;
+    --border-focus: #4f46e5;
+    --field: #ffffff;
+    --field-text: #101828;
+    --num-bg: #101828;
+    --num-text: #ffffff;
+    --chip-bg: #eef1f5;
+    --chip-text: #344054;
+    --chip-red-bg: #fee4e2;
+    --chip-red-text: #b42318;
+    --chip-amber-bg: #fff4e5;
+    --chip-amber-text: #b54708;
+    --chip-green-bg: #e6f4ea;
+    --chip-green-text: #067647;
+    --glow: none;
+    --hero-glow: 0 24px 60px -30px rgb(16 24 40 / 0.25);
+    --hero-color: #eef1f5;
+    --hero-image: none;
+    --hero-size: auto;
+    --hero-position: 0 0;
+    --hero-repeat: no-repeat;
+    --raccoon: none;
+    --backdrop: none;
+    --page-max: 70rem;
+    --page-max-wide: 76rem;
+    --page-surface: transparent;
+    --page-surface-border: transparent;
+    --page-radius: 0;
+    --page-pad: 2rem;
+    --page-top: 1.5rem;
+    --danger: #d92d20;
+    --danger-text: #b42318;
+    --danger-strong: #912018;
+    --danger-bg: #fee4e2;
+    --danger-border: #fecdca;
+    --danger-border-strong: #f04438;
+    --warn-bg: #fff4e5;
+    --warn-border: #fedf89;
+    --warn-text: #b54708;
+    --warn-strong: #93370d;
+    --info-bg: #eef2ff;
+    --info-text: #4f46e5;
+    --info-border: #c7d2fe;
+    --ok-bg: #e6f4ea;
+    --ok-text: #067647;
+    --ok-border: #a6e2b8;
+    --ok-solid: #067647;
+    --ok-solid-hover: #05603a;
+    --overlay: rgb(16 24 40 / 0.45);
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --on-accent: #ffffff;
+    --blue: #4f46e5;
+    --blue-hover: #4338ca;
+    --green: #067647;
+    --green-hover: #05603a;
+    --purple: #4f46e5;
+    --purple-hover: #4338ca;
+    --red: #d92d20;
+    --amber: #f79009;
+    --brand: #4f46e5;
+    /* действия и статусы (см. шапку файла): акцент — индиго, «Закрыть» — зелёный успеха */
+    --btn-primary: #4f46e5;
+    --btn-primary-hover: #4338ca;
+    --on-primary: #ffffff;
+    --btn-success: #067647;
+    --btn-success-hover: #05603a;
+    --on-success: #ffffff;
+    --count-bg: #101828;
+    --count-text: #ffffff;
+    --count-red-bg: #fee4e2;
+    --count-red-text: #b42318;
+    --stripe-overdue: #d92d20;
+    --stripe-soon: #f79009;
+    --stripe-later: #4f46e5;
+    --stripe-none: #d0d5dd;
+    --stripe-closed: #067647;
+    --group-overdue: #b42318;
+    --group-soon: #b54708;
+    --menu-bg: #ffffff;
+    --menu-bg-hover: #eef2ff;
+    --menu-border: #e4e7ec;
+    --menu-text: #101828;
+    --menu-icon-bg: #eef2ff;
+    --menu-icon: #4f46e5;
+    --menu-pill-bg: #101828;
+    --menu-pill-text: #ffffff;
+    --board-bg: #101828;
+    --board-border: #101828;
+    --board-text: #ffffff;
+    --board-muted: #98a2b3;
+    --board-soft: #d0d5dd;
+    --board-row-hover: rgb(255 255 255 / 0.06);
+    --board-row-overdue: rgb(217 45 32 / 0.14);
+    --board-overdue: #fda29b;
+    --board-soon: #fec84b;
+    --board-link: #c7d2fe;
+    --rail-bg: #eef1f5;
+}
+
+/* --- шрифты Табло: локальные файлы, лицензия OFL рядом (static/fonts/OFL-*.txt).
+   Объявления общие, но браузер скачивает файл только когда шрифт реально нужен тексту
+   на странице, то есть только в теме tablo (--font-sans/--font-mono других тем его не
+   называют). Подмножества: кириллица и латиница, начертания 400–800 и 400–600. --- */
+@font-face {
+    font-family: "Golos Text";
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/static/fonts/golos-text-cyrillic.woff2?v=1') format('woff2');
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+    font-family: "Golos Text";
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/static/fonts/golos-text-latin.woff2?v=1') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url('/static/fonts/jetbrains-mono-cyrillic.woff2?v=1') format('woff2');
+    unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url('/static/fonts/jetbrains-mono-latin.woff2?v=1') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* --- preflight (сокращённый) --- */
 *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: var(--border); }
-html { line-height: 1.5; -webkit-text-size-adjust: 100%; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg); }
+html { line-height: 1.5; -webkit-text-size-adjust: 100%; font-family: var(--font-sans); background-color: var(--bg); }
 body { margin: 0; }
 h1, h2, h3, p, dl, dd { margin: 0; }
 ol, ul { list-style: none; margin: 0; padding: 0; }
@@ -415,7 +621,7 @@ img { max-width: 100%; }
 .font-bold { font-weight: 700; }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
-.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.font-mono { font-family: var(--font-mono); }
 .text-center { text-align: center; }
 .text-left { text-align: left; }
 .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
@@ -604,8 +810,14 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
     text-align: center;
     font-weight: 600;
 }
-.count-red { background: #e11d48; color: #ffffff; }
+.count-red { background: var(--count-red-bg); color: var(--count-red-text); }
 .topbar-spacer { flex: 1; }
+/* двое часов: время устройства и настроенный пояс; цифры одной ширины, чтобы не прыгали */
+.clocks { display: inline-flex; align-items: center; gap: 0.9rem; margin-right: 0.35rem; font-family: var(--font-mono); color: var(--top-muted); white-space: nowrap; }
+.clock { display: inline-flex; align-items: baseline; gap: 0.3rem; }
+.clock[hidden] { display: none; }
+.clock-time { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--top-text); }
+.clock-label { font-size: 0.72rem; }
 .topbar-user { color: var(--top-muted); font-size: 0.8125rem; }
 .topbar .btn-ghost { color: var(--top-text); border-color: var(--top-ghost-border); }
 .topbar .btn-ghost:hover { background: var(--top-tab); }
@@ -653,6 +865,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 
 /* --- рабочая область --- */
 .page {
+    position: relative;
+    z-index: 1;
+    container: page / inline-size;
     max-width: var(--page-max);
     margin: var(--page-top) auto 2rem;
     padding: 1.25rem var(--page-pad) 2.5rem;
@@ -728,6 +943,26 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 .group-title svg { width: 1rem; height: 1rem; }
 .group-overdue { color: var(--group-overdue, #fb7185); }
 .group-soon { color: var(--group-soon, #fbbf24); }
+/* рейка времени: вертикальная линия цвета группы слева от строк, точка у каждой строки */
+.rail { position: relative; margin: 1rem 0 0 0.5rem; padding-left: 1.5rem; border-left: 2px solid var(--rail, var(--border-strong)); }
+.rail .group-title { margin-top: 0; }
+.rail-overdue { --rail: var(--stripe-overdue); }
+.rail-soon { --rail: var(--stripe-soon); }
+.rail-later { --rail: var(--stripe-later); }
+.rail-none { --rail: var(--stripe-none); border-left-style: dashed; }
+.rail .card::before {
+    content: "";
+    position: absolute;
+    left: calc(-1.5rem - 0.4rem - 6px);
+    top: 50%;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-top: -0.4rem;
+    border-radius: 9999px;
+    background: var(--rail);
+    box-shadow: 0 0 0 3px var(--rail-bg);
+}
+.rail-none .card::before { background: var(--rail-bg); border: 2px solid var(--rail); }
 
 /* --- карточка заявки --- */
 .card {
@@ -737,8 +972,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
     border: 1px solid var(--border);
     border-left: 5px solid var(--stripe, var(--stripe-later));
     border-radius: var(--r-card);
-    padding: 1.15rem 1.35rem;
-    margin-bottom: 0.85rem;
+    padding: 0.95rem 1.15rem 0.95rem 1.2rem;
+    margin-bottom: 0.65rem;
     box-shadow: 0 6px 20px -14px rgb(0 0 0 / 0.55);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -748,19 +983,51 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 .stripe-later { --stripe: var(--stripe-later); }
 .stripe-none { --stripe: var(--stripe-none); }
 .stripe-closed { --stripe: var(--stripe-closed); }
-.card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+/* строка заявки (холст «Табло», одинакова во всех темах): время в первой колонке,
+   номер текстом, название с описанием, действия справа */
+.card-row {
+    display: grid;
+    grid-template-columns: 6.25rem 4.5rem minmax(0, 1fr) auto;
+    grid-template-areas: "when num main actions";
+    gap: 0.5rem 1rem;
+    align-items: center;
+}
+.card-when {
+    grid-area: when;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding-right: 0.9rem;
+    border-right: 1px solid var(--border-soft);
+}
+.when-time { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }
+.when-range { font-size: 0.95rem; }
+.when-day { font-size: 1.15rem; }
+.when-none { color: var(--text-faint); }
+.when-sub { font-family: var(--font-mono); font-size: 0.72rem; line-height: 0.95rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stripe-overdue .when-time, .stripe-overdue .when-rel { color: var(--chip-red-text); }
+.stripe-soon .when-time, .stripe-soon .when-rel { color: var(--chip-amber-text); }
+.stripe-closed .when-time { color: var(--text-faint); text-decoration: line-through; text-decoration-thickness: 2px; }
+.card-num { grid-area: num; font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; }
+.card-num-closed { color: var(--ok-text); }
+.card-main { grid-area: main; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.card-closed { font-size: 0.8125rem; color: var(--text-muted); }
+.chip-info { background: var(--info-bg); color: var(--info-text); }
 .num {
     flex-shrink: 0;
     padding: 0.15rem 0.6rem;
     border-radius: var(--r-num);
     background: var(--num-bg);
     color: var(--num-text);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 0.85rem;
     font-weight: 600;
 }
 .num-green { background: var(--ok-solid); color: var(--on-success); }
-.card-title { flex: 1 1 12rem; min-width: 0; font-size: 1.15rem; font-weight: 700; line-height: 1.45rem; overflow-wrap: anywhere; }
+.card-title { min-width: 0; font-size: 1.05rem; font-weight: 600; line-height: 1.4rem; overflow-wrap: anywhere; }
 .chip {
     display: inline-flex;
     align-items: center;
@@ -780,18 +1047,11 @@ button.chip:hover { filter: brightness(1.08); }
 .chip-overdue { background: var(--chip-red-bg); color: var(--chip-red-text); }
 .chip-soon { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
 .chip-ok { background: var(--chip-green-bg); color: var(--chip-green-text); }
-.card-desc {
-    margin-top: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--r-inner);
-    background: var(--surface-2);
-    border: 1px solid var(--border-soft);
-}
-/* обрезка на внутреннем тексте: у плашки свои отступы, третья строка не просвечивает в них */
+/* описание под названием, не длиннее двух строк; полный текст — «Показать полностью» */
 .card-desc-text {
-    color: var(--text-soft);
-    font-size: 0.95rem;
-    line-height: 1.45rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.3rem;
     white-space: pre-line;
     overflow-wrap: anywhere;
     display: -webkit-box;
@@ -799,9 +1059,15 @@ button.chip:hover { filter: brightness(1.08); }
     -webkit-line-clamp: 2;
     overflow: hidden;
 }
-.card-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.75rem; margin-top: 0.85rem; }
-.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; flex: 1 1 12rem; color: var(--text-faint); font-size: 0.8125rem; }
-.card-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.5rem; }
+.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; margin-top: 0.15rem; color: var(--text-faint); font-size: 0.8125rem; }
+.card-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.5rem; }
+/* узкая рабочая колонка (Ночь и Классика, 46rem): действия строкой под текстом, а не четвёртой колонкой */
+@container page (max-width: 60rem) {
+    .card-row { grid-template-columns: 6rem 4.25rem minmax(0, 1fr); grid-template-areas: "when num main" "when num actions"; align-items: start; }
+    .card-when { align-self: center; }
+    .card-num { align-self: center; }
+    .card-actions { margin-top: 0.25rem; }
+}
 .link-btn { color: var(--info-text); font-size: 0.8125rem; font-weight: 500; cursor: pointer; }
 .link-btn:hover { text-decoration: underline; }
 
@@ -928,6 +1194,19 @@ body.hero-body {
     .hero-raccoon { width: 16rem; left: calc(100% - 0.453 * 16rem); }
 }
 @media (max-width: 44rem) { .hero-raccoon { display: none; } }
+/* енот на главной: в углу экрана за рабочей областью (только где --raccoon: block) */
+.home-raccoon {
+    position: fixed;
+    z-index: 0;
+    right: 0;
+    bottom: 0;
+    width: 14rem;
+    height: auto;
+    display: var(--raccoon);
+    pointer-events: none;
+    filter: drop-shadow(0 10px 30px rgb(0 0 0 / 0.5));
+}
+@media (max-width: 64rem) { .home-raccoon { display: none; } }
 /* телефон: енот скрыт, а фон джунглей отдаём уменьшенным (900px, ~35 КБ вместо ~80) */
 @media (max-width: 44rem) {
     :root[data-theme="new"] {
@@ -939,24 +1218,7 @@ body.hero-body {
 /* телефон в ландшафте: не растягивать hero на 100vh */
 @media (max-height: 520px) { .page-hero { min-height: auto; } }
 
-.menu { margin-top: 1.5rem; display: grid; gap: 0.6rem; text-align: left; }
-/* кнопки меню: спокойные плашки с иконкой цвета акцента; залита только «Создать заявку» */
-.menu-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.8rem 1rem 0.8rem 0.8rem;
-    border-radius: var(--r-btn);
-    background: var(--menu-bg);
-    border: 1px solid var(--menu-border);
-    color: var(--menu-text);
-    font-size: 1.05rem;
-    font-weight: 600;
-    transition: transform 0.12s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-}
-.menu-btn:hover { transform: translateY(-1px); background: var(--menu-bg-hover); }
-.menu-btn-label { display: inline-flex; align-items: center; gap: 0.7rem; white-space: nowrap; }
+/* --- главная «Сводка смены»: дата, табло ближайших заявок, плашки разделов --- */
 .menu-icon {
     display: inline-flex;
     align-items: center;
@@ -968,20 +1230,72 @@ body.hero-body {
     color: var(--menu-icon);
     flex-shrink: 0;
 }
-.menu-btn svg { width: 1.25rem; height: 1.25rem; }
-.menu-btn-meta { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 500; white-space: nowrap; color: var(--on-bg-muted); }
-.menu-pill { padding: 0.1rem 0.6rem; border-radius: 9999px; background: var(--menu-pill-bg); color: var(--menu-pill-text); font-weight: 700; }
-.menu-pill-red { background: #e11d48; color: #ffffff; }
-.menu-btn-history .menu-pill { background: var(--ok-bg); color: var(--ok-text); }
-.menu-btn-create {
-    background: var(--btn-primary);
-    border-color: var(--btn-primary);
-    color: var(--on-primary);
-    box-shadow: var(--glow) var(--btn-primary);
+.menu-icon svg { width: 1.25rem; height: 1.25rem; }
+.menu-pill { padding: 0.1rem 0.6rem; border-radius: 9999px; background: var(--menu-pill-bg); color: var(--menu-pill-text); font-size: 0.85rem; font-weight: 700; }
+.home-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.5rem 1.5rem; margin-bottom: 1.1rem; }
+.home-now { display: block; margin-bottom: 0.3rem; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.02em; color: var(--on-bg-muted); }
+.home-title { font-size: 1.75rem; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+.home-lead { max-width: 26rem; font-size: 0.875rem; color: var(--on-bg-muted); }
+.board {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.5rem 0.75rem;
+    border-radius: var(--r-card);
+    background: var(--board-bg);
+    border: 1px solid var(--board-border);
+    color: var(--board-text);
+    box-shadow: 0 16px 40px -24px rgb(0 0 0 / 0.6);
 }
-.menu-btn-create:hover { background: var(--btn-primary-hover); }
-.menu-btn-create .menu-icon, .menu-btn-create .menu-pill { background: rgb(0 0 0 / 0.14); color: inherit; }
-.menu-btn-create .menu-btn-meta { color: inherit; }
+.board-head, .board-row {
+    display: grid;
+    grid-template-columns: 5.5rem 4.5rem minmax(0, 1fr) auto;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+}
+.board-head { padding-top: 0.5rem; padding-bottom: 0.25rem; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--board-muted); }
+.board-row { border-radius: var(--r-inner); color: inherit; }
+.board-row:hover { background: var(--board-row-hover); }
+.board-overdue { background: var(--board-row-overdue); }
+.board-time { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }
+.board-num { font-family: var(--font-mono); font-size: 0.9rem; color: var(--board-soft); white-space: nowrap; }
+.board-title { font-size: 1rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-state { text-align: right; font-size: 0.8rem; font-weight: 600; color: var(--board-soft); white-space: nowrap; }
+.board-overdue .board-time, .board-overdue .board-state { color: var(--board-overdue); }
+.board-soon .board-time, .board-soon .board-state { color: var(--board-soon); }
+.board-empty { padding: 1.25rem 1rem; font-size: 0.9rem; color: var(--board-muted); }
+.board-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.7rem 1rem 0.1rem; font-size: 0.8rem; color: var(--board-muted); }
+.board-foot a { color: var(--board-link); font-weight: 600; }
+.board-foot a:hover { text-decoration: underline; }
+.home-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.9rem; margin-top: 1.1rem; }
+.home-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    min-height: 9.5rem;
+    padding: 1.15rem 1.25rem;
+    border-radius: var(--r-card);
+    background: var(--menu-bg);
+    border: 1px solid var(--menu-border);
+    color: var(--menu-text);
+    transition: transform 0.12s ease, background-color 0.15s ease;
+}
+.home-card:hover { transform: translateY(-1px); background: var(--menu-bg-hover); }
+.home-card-top { display: flex; align-items: center; justify-content: space-between; }
+.home-card-top .menu-icon { width: 2.5rem; height: 2.5rem; border-radius: var(--r-inner); }
+.menu-icon-ok { background: var(--ok-bg); color: var(--ok-text); }
+.home-card-arrow { width: 1.25rem; height: 1.25rem; opacity: 0.5; }
+.home-card-text { display: flex; flex-direction: column; gap: 0.2rem; }
+.home-card-name { font-size: 1.05rem; font-weight: 700; }
+.home-card-sub { font-size: 0.8rem; color: var(--on-bg-muted); }
+.home-overdue { color: var(--group-overdue); font-weight: 600; }
+.home-card-num { margin-top: auto; font-family: var(--font-mono); font-size: 2.5rem; font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
+.home-card-go { margin-top: auto; font-size: 0.9rem; font-weight: 600; }
+.home-card-create { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-primary); box-shadow: var(--glow) var(--btn-primary); }
+.home-card-create:hover { background: var(--btn-primary-hover); }
+.home-card-create .menu-icon, .home-card-create .menu-pill { background: rgb(0 0 0 / 0.14); color: inherit; }
+.home-card-create .home-card-sub { color: inherit; opacity: 0.8; }
 .hero-foot { margin-top: 1rem; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5rem 0.9rem; color: var(--on-bg-muted); font-size: 0.8rem; }
 .hero-foot a:hover { color: var(--on-bg); }
 .theme-btn { display: inline-flex; align-items: center; gap: 0.3rem; color: inherit; font-size: inherit; }
@@ -1026,6 +1340,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 /* превью тем в профиле — фиксированные образцы, не перекраска темы */
 .swatch-new { background: linear-gradient(135deg, #0a1118 50%, #3ad1bd 50%); }
 .swatch-classic { background: linear-gradient(135deg, #111827 50%, #f8fafc 50%); }
+.swatch-tablo { background: linear-gradient(135deg, #eef1f5 50%, #4f46e5 50%); }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 
 /* --- админка и пользователи --- */
@@ -1082,7 +1397,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .howto-title::-webkit-details-marker { display: none; }
 .howto-title svg { width: 1.25rem; height: 1.25rem; color: var(--brand); }
 .howto-steps { margin-top: 0.75rem; padding-left: 1.4rem; list-style: decimal; display: grid; gap: 0.45rem; font-size: 0.95rem; color: var(--text-soft); }
-.howto code, .tpl-text code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 0 0.3rem; border-radius: 0.25rem; background: var(--surface-3); }
+.howto code, .tpl-text code { font-family: var(--font-mono); padding: 0 0.3rem; border-radius: 0.25rem; background: var(--surface-3); }
 .tpl-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
 .tpl-row {
     display: flex;
@@ -1115,8 +1430,6 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 /* мобайл */
 @media (max-width: 440px) {
     .hero-card { padding: 1.5rem 1rem 1.25rem; }
-    .menu-btn { padding: 0.85rem 0.8rem; font-size: 1rem; }
-    .menu-hide-sm { display: none; }
 }
 /* планшет и узкий ноутбук: шапка в одну строку — тема и логин иконками */
 @media (max-width: 1100px) {
@@ -1142,7 +1455,31 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
     .user-main, .user-actions { min-width: 0; }
     dialog#ticket-modal { width: calc(100vw - 1.5rem); max-width: none; }
     .topbar-user, .topbar [data-theme-label] { display: none; }
+    /* часы на телефоне — своей строкой между кнопками и разделами, подписи короче */
+    .clocks { order: 2; width: 100%; gap: 1.1rem; margin: 0.1rem 0 0; }
+    .clock-time { font-size: 0.95rem; }
+    .clock-label { max-width: 7rem; overflow: hidden; text-overflow: ellipsis; }
     .card-actions { width: 100%; }
     .card-actions .btn-green, .card-actions details { flex: 1 1 auto; }
     .card-actions details > summary { width: 100%; }
+    /* строка заявки на телефоне: время слева, номер под ним, действия строкой ниже */
+    .card-row { grid-template-columns: 5.25rem minmax(0, 1fr); grid-template-rows: auto 1fr auto; grid-template-areas: "when main" "num main" "actions actions"; gap: 0.4rem 0.75rem; align-items: start; }
+    .card-when { min-height: 0; padding-right: 0.5rem; }
+    .when-time { font-size: 1.2rem; }
+    .when-sub { font-size: 0.68rem; }
+    .when-range { font-size: 0.8rem; }
+    .when-day { font-size: 1rem; }
+    .card-num { align-self: start; font-size: 0.8rem; }
+    .rail { margin-left: 0; padding-left: 0; border-left: 0; }
+    .rail .card::before { display: none; }
+    /* табло: время слева, название и состояние справа */
+    .board-head { display: none; }
+    .board-row { grid-template-columns: 4rem auto minmax(0, 1fr); grid-template-areas: "time title title" "time num state"; gap: 0.15rem 0.6rem; padding: 0.6rem 0.75rem; }
+    .board-time { grid-area: time; font-size: 1.25rem; }
+    .board-title { grid-area: title; }
+    .board-num { grid-area: num; font-size: 0.8rem; }
+    .board-state { grid-area: state; text-align: left; font-size: 0.75rem; }
+    .home-cards { grid-template-columns: minmax(0, 1fr); }
+    .home-card { min-height: 0; gap: 0.6rem; }
+    .home-card-num { font-size: 2rem; }
 }

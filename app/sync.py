@@ -52,6 +52,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, replace
 from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -106,10 +107,49 @@ SHAPE_DEFAULTS = {SETTING_CARD_SHAPE: "round", SETTING_BUTTON_SHAPE: "square"}
 
 # Темы панели: единый источник для админки, профиля и static/theme.js. id «new» =
 # «Ночь» (id исторический: так сохранились настройки тех, кто её уже выбрал);
-# «classic» — светлая строгая тема, запасная. Снятые id (soft, silach, light,
-# dark) в Setting и личных настройках читаются как тема по умолчанию.
-VALID_THEMES = ("new", "classic")
+# «classic» — светлая строгая тема, запасная; «tablo» — светлый рабочий вид
+# «Табло». Снятые id (soft, silach, light, dark) в Setting и личных настройках
+# читаются как тема по умолчанию.
+VALID_THEMES = ("new", "classic", "tablo")
 FALLBACK_THEME = "classic"
+
+# Вторые часы в шапке: пояс задаёт админ (clock_zone), профиль может переопределить
+# (user_pref:{id}:clock_zone). Только показ — плановое время заявок остаётся по Москве.
+# Список зон закрытый (id IANA + подпись), чтобы в Setting не попал мусор; переходы на
+# летнее время считает браузер (Intl) и zoneinfo на сервере.
+SETTING_CLOCK_ZONE = "clock_zone"
+DEFAULT_CLOCK_ZONE = "Europe/Moscow"
+CLOCK_ZONES = (
+    ("Europe/Kaliningrad", N_("Калининград")),
+    ("Europe/Moscow", N_("Москва")),
+    ("Europe/Samara", N_("Самара")),
+    ("Asia/Yekaterinburg", N_("Екатеринбург")),
+    ("Asia/Omsk", N_("Омск")),
+    ("Asia/Novosibirsk", N_("Новосибирск")),
+    ("Asia/Krasnoyarsk", N_("Красноярск")),
+    ("Asia/Irkutsk", N_("Иркутск")),
+    ("Asia/Yakutsk", N_("Якутск")),
+    ("Asia/Vladivostok", N_("Владивосток")),
+    ("Asia/Magadan", N_("Магадан")),
+    ("Asia/Kamchatka", N_("Камчатка")),
+    ("Europe/Minsk", N_("Минск")),
+    ("Asia/Almaty", N_("Алматы")),
+    ("Asia/Tashkent", N_("Ташкент")),
+    ("Asia/Bishkek", N_("Бишкек")),
+    ("Asia/Dushanbe", N_("Душанбе")),
+    ("Asia/Baku", N_("Баку")),
+    ("Asia/Yerevan", N_("Ереван")),
+    ("Asia/Tbilisi", N_("Тбилиси")),
+    ("Europe/Chisinau", N_("Кишинёв")),
+    ("Europe/Istanbul", N_("Стамбул")),
+    ("Asia/Dubai", N_("Дубай")),
+    ("Asia/Bangkok", N_("Бангкок")),
+    ("Europe/Berlin", N_("Берлин")),
+    ("Europe/London", N_("Лондон")),
+    ("America/New_York", N_("Нью-Йорк")),
+    ("UTC", N_("UTC")),
+)
+VALID_CLOCK_ZONES = tuple(zone for zone, _label in CLOCK_ZONES)
 SETTING_USEDESK_API_TOKEN = "usedesk_api_token"
 SETTING_TELEGRAM_BOT_TOKEN = "telegram_bot_token"
 SETTING_TELEGRAM_CHAT_ID = "telegram_chat_id"
@@ -146,6 +186,7 @@ def default_settings() -> dict[str, str]:
         SETTING_HISTORY_GROUPED: "0",
         SETTING_PERSONAL_APPEARANCE: "1",
         SETTING_DEFAULT_LANGUAGE: FALLBACK_LANG,
+        SETTING_CLOCK_ZONE: DEFAULT_CLOCK_ZONE,
         **SHAPE_DEFAULTS,
         SETTING_USEDESK_API_TOKEN: "",
         SETTING_TELEGRAM_BOT_TOKEN: "",
@@ -183,12 +224,38 @@ def ui_shapes() -> dict[str, str]:
     return shapes
 
 
-APPEARANCE_KEYS = ("theme", SETTING_CARD_SHAPE, SETTING_BUTTON_SHAPE)
+def clock_zone() -> str:
+    """Пояс вторых часов, заданный админом; мусор в Setting читается как Москва."""
+    value = get_setting(SETTING_CLOCK_ZONE, DEFAULT_CLOCK_ZONE)
+    return value if value in VALID_CLOCK_ZONES else DEFAULT_CLOCK_ZONE
+
+
+def clock_zone_label(zone: str) -> str:
+    """Подпись зоны на языке страницы («Москва»); неизвестная зона — её id."""
+    return next((_(label) for key, label in CLOCK_ZONES if key == zone), zone)
+
+
+def clock_zone_choices() -> list[tuple[str, str]]:
+    return [(zone, _(label)) for zone, label in CLOCK_ZONES]
+
+
+def clock_time(zone: str, now: datetime | None = None) -> str:
+    """Начальное «ЧЧ:ММ» для вторых часов (дальше тикает браузер); без базы зон — пусто."""
+    try:
+        moment = (now or datetime.now(ZoneInfo("UTC"))).astimezone(ZoneInfo(zone))
+    except (ZoneInfoNotFoundError, ValueError):
+        return ""
+    return moment.strftime("%H:%M")
+
+
+APPEARANCE_KEYS = ("theme", SETTING_CARD_SHAPE, SETTING_BUTTON_SHAPE, SETTING_CLOCK_ZONE)
 
 
 def _valid_appearance(key: str, value: str) -> bool:
     if key == "theme":
         return value in VALID_THEMES
+    if key == SETTING_CLOCK_ZONE:
+        return value in VALID_CLOCK_ZONES
     return key in SHAPE_DEFAULTS and value in VALID_SHAPES
 
 
@@ -201,14 +268,14 @@ def _user_pref_key(user_id: int, key: str) -> str:
 
 
 def global_appearance() -> dict[str, str]:
-    """Вид, заданный админом: тема и форма по умолчанию (вход, setup, запрет личного)."""
-    return {"theme": default_theme(), **ui_shapes()}
+    """Вид, заданный админом: тема, форма и пояс вторых часов (вход, setup, запрет личного)."""
+    return {"theme": default_theme(), **ui_shapes(), SETTING_CLOCK_ZONE: clock_zone()}
 
 
 def appearance_for(user: object | None) -> dict[str, str]:
     """Вид страницы для пользователя: личный (если админ разрешил и он задан), иначе общий.
 
-    Личные значения — строки Setting user_pref:{id}:theme|card_shape|button_shape;
+    Личные значения — строки Setting user_pref:{id}:theme|card_shape|button_shape|clock_zone;
     неизвестное значение (снятая тема, мусор) молча заменяется общим.
     """
     appearance = global_appearance()

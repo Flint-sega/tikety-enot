@@ -36,7 +36,7 @@ def _set_theme(client, value: str):
 
 
 def test_valid_themes_fixed_set():
-    assert VALID_THEMES == ("new", "classic")
+    assert VALID_THEMES == ("new", "classic", "tablo")
 
 
 def test_default_settings_carry_classic_theme():
@@ -76,6 +76,7 @@ def test_admin_page_selector_shows_current_value(client, ui, session):
     assert '<option value="new" selected>Ночь</option>' in html
     assert 'value="soft"' not in html, "«Ночь мягкая» снята"
     assert '<option value="classic">Классика</option>' in html
+    assert '<option value="tablo">Табло</option>' in html
     assert 'value="silach"' not in html
 
 

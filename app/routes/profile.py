@@ -1,5 +1,5 @@
 """«Мой профиль» — у каждого вошедшего (оператор и админ): смена своего пароля
-и личный внешний вид (тема, форма плашек и кнопок).
+и личный внешний вид (тема, форма плашек и кнопок, пояс вторых часов).
 
 Пароль: нужен текущий; новый — по правилу password_rule_error (8+ символов,
 ≤ 72 байт), совпадает с повтором и отличается от текущего. Неверный текущий
@@ -35,6 +35,7 @@ from app.db import get_session
 from app.i18n import N_, _
 from app.models import User
 from app.sync import (
+    clock_zone_choices,
     personal_appearance_allowed,
     reset_user_appearance,
     set_user_appearance,
@@ -66,6 +67,7 @@ def _profile_page(
         {
             "user": user,
             "tab": "profile",
+            "clock_zone_choices": clock_zone_choices(),
             "password_error": password_error,
             "appearance_error": appearance_error,
             "done_message": _(DONE_MESSAGES[done]) if done in DONE_MESSAGES else None,

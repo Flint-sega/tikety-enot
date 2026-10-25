@@ -151,7 +151,8 @@ def test_create_exact_via_form_saves_and_shows(client, ui, session):
     stored = session.scalar(select(Ticket.planned_at))
     assert stored == "2026-10-20 21:00"
     page = client.get("/tickets")
-    assert "20.10" in page.text and "· 21:00" in page.text, "короткая подпись планового времени"
+    assert '<span class="when-time">21:00</span>' in page.text, "время в первой колонке строки"
+    assert "20.10" in page.text, "день под временем"
 
 
 def test_create_range_via_form_saves_en_dash_string(client, ui, session):

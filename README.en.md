@@ -6,16 +6,17 @@ Enot Tickets (Тикеты Енот, "enot" is Russian for raccoon) is a small w
 
 It runs on Python (FastAPI), Jinja2 templates with HTMX, and a single SQLite database. No Node.js, no frontend build step, no separate database server. The interface is in Russian and English, switched with an RU/EN button.
 
-![Enot Tickets home page in the Night theme: open and overdue counters, a raccoon wearing headphones](docs/screenshots/en/home.jpg)
+![Enot Tickets home page in the Night theme: the shift summary board of upcoming tickets, section counters and a raccoon wearing headphones](docs/screenshots/en/home.jpg)
 
 ## Features
 
-- Open tickets are grouped by deadline: Overdue, Next 24 hours, Later, No deadline. Each one shows a hint like "in 2 h" or "5 h ago".
+- The home page is a shift summary: a board of upcoming tickets by planned time with overdue ones on top, plus counters for open, overdue and closed today.
+- Open tickets are grouped by deadline: Overdue, Next 24 hours, Later, No deadline. Each row starts with the time in large digits and a hint under it like "in 2 h" or "5 h ago".
 - Closing takes two clicks: "Done" and "Postponed" chips or your own comment.
 - Closed ticket history with search by number, title, description and comment.
 - Templates for routine tickets, personal or shared. A placeholder in braces such as `{database}` gets selected after a click, so you type the number right over it.
 - Admin and operator roles, password change in the profile, user deactivation.
-- Two themes, Night and Classic, with rounded or square buttons. Everyone has their own look, stored on the server and the same on every device. You can make [your own theme](docs/themes.en.md).
+- Three themes, Night, Classic and Board, with rounded or square buttons. Two clocks in the header: the device time and a chosen time zone (the admin sets it for everyone, the profile can override). Everyone has their own look, stored on the server and the same on every device. You can make [your own theme](docs/themes.en.md).
 - A Telegram bot posts new and closed tickets to a group.
 - UseDesk sync: a ticket created in the panel opens a UseDesk ticket, a UseDesk ticket becomes a panel ticket, and closing works both ways.
 - Export to CSV (opens in Excel) and JSON, import of an existing ticket list from JSON.
@@ -25,26 +26,28 @@ It runs on Python (FastAPI), Jinja2 templates with HTMX, and a single SQLite dat
 
 | Open tickets | Closed history |
 |---|---|
-| ![Open tickets grouped by deadline: overdue with a red stripe, due soon with a yellow one](docs/screenshots/en/open.jpg) | ![Closed ticket history with comments and who closed each ticket](docs/screenshots/en/history.jpg) |
+| ![Open tickets by deadline: the time on the left with a colored group rail, overdue in red, due soon in yellow](docs/screenshots/en/open.jpg) | ![Closed ticket history with comments and who closed each ticket](docs/screenshots/en/history.jpg) |
 | **New ticket with templates** | **Admin** |
-| ![New ticket form: template buttons and quick time presets](docs/screenshots/en/new.jpg) | ![Admin page: default theme and language, button shape, integrations](docs/screenshots/en/admin.jpg) |
-| **Classic theme** | **Phone** |
-| ![The same open tickets in the light Classic theme](docs/screenshots/en/classic.jpg) | <img src="docs/screenshots/en/mobile.jpg" alt="Ticket list on a phone screen" width="260"> |
+| ![New ticket form: template buttons and quick time presets](docs/screenshots/en/new.jpg) | ![Admin page: default theme and language, the second clock's time zone, button shape](docs/screenshots/en/admin.jpg) |
+| **Classic theme** | **Board theme** |
+| ![The same open tickets in the light Classic theme](docs/screenshots/en/classic.jpg) | ![The shift summary in the light Board theme: a dark board of upcoming tickets and three section cards](docs/screenshots/en/tablo.jpg) |
+| **Phone** | **Sign-in** |
+| <img src="docs/screenshots/en/mobile.jpg" alt="Ticket list on a phone screen" width="260"> | ![Sign-in page in the Night theme](docs/screenshots/en/login.jpg) |
 
-Sign-in page: [screenshot](docs/screenshots/en/login.jpg). All tickets in the screenshots are made up; `scripts/demo_data.py` creates them.
+The header in the screenshots shows two clocks: the device time (the browser was set to London) and Moscow. All tickets are made up; `scripts/demo_data.py` creates them.
 
 ## The honest part: what this version is and is not
 
-The panel was written for one small team and does that job: 353 automated tests pass, and the integrations are tested against mocks. It is not Jira or Zendesk, though, and you should know its limits before you install it.
+The panel was written for one small team and does that job: 363 automated tests pass, and the integrations are tested against mocks. It is not Jira or Zendesk, though, and you should know its limits before you install it.
 
-- **The time zone is hard-coded to Moscow (UTC+3).** Planned time, "overdue", "today" and history timestamps all use MSK. Another time zone means changing the code (`app/tickets.py`, `static/app.js`).
+- **Deadlines run on Moscow time (UTC+3).** The time zone setting only changes the second clock in the header. Planned time, "overdue", "today" and history timestamps still use MSK; counting them in another zone means changing the code (`app/tickets.py`, `static/app.js`).
 - **One process, one SQLite file.** Fine for a team of up to a few dozen people. It does not scale horizontally: never run two instances against one database ([ADR-0001](docs/adr/0001-sqlite-single-process.md), in Russian).
 - **A ticket is either open or closed.** There is no assignee, priority, attachments, in-ticket conversation, SLA or reporting.
 - **Integrations are UseDesk and Telegram only.** No email. UseDesk is polled once a minute rather than via webhooks, so changes can take up to a minute to arrive ([ADR-0002](docs/adr/0002-polling-not-webhooks.md)).
 - **Sign-in is login and password only.** No two-factor auth and no SSO. The failed-login counter lives in memory and resets on restart.
 - **No API.** People use the panel in a browser; other systems can only pull data through CSV/JSON export.
 - **The translation has gaps at the edges.** The whole UI is translated, but server logs, code comments and developer docs (`docs/architecture.md`, ADRs, `INSTALL.md`) are in Russian. Search handles word endings for Russian only; English search matches substrings.
-- **A theme id lives in several places.** Adding a third theme means registering its id in five files ([how to](docs/themes.en.md)).
+- **A theme id lives in several places.** Adding another theme means registering its id in five files ([how to](docs/themes.en.md)).
 - **Backups are manual:** copy the `data/` folder. The panel does not back itself up on a schedule.
 - **If the only admin forgets the password,** the only way back in is restoring from a backup.
 
@@ -75,7 +78,7 @@ UI strings are written in Russian inside `_()` in the code; the English translat
 
 ## Custom themes
 
-How to recolor Night or Classic and how to add a new theme: [docs/themes.en.md](docs/themes.en.md).
+How to recolor Night, Classic or Board and how to add a new theme: [docs/themes.en.md](docs/themes.en.md).
 
 ## Quick start with Docker
 

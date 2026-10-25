@@ -474,30 +474,40 @@ def relative_label(moment: datetime, now_msk: datetime) -> str:
     return _("{amount} назад", amount=amount)
 
 
+def _planned_parts(planned_at: str | None, now_msk: datetime) -> tuple[str, str] | None:
+    """Части плановой подписи: (день «20.10» или «20.10.2025», время «02:00» /
+    «03:00–04:00» / «» без времени). None — строка не разобрана."""
+    window = _planned_window((planned_at or "").strip())
+    if window is None:
+        return None
+    start, end, has_time = window
+    day = f"{start.day:02d}.{start.month:02d}"
+    if start.year != now_msk.year:
+        day += f".{start.year}"
+    if not has_time:
+        return day, ""
+    time = f"{start.hour:02d}:{start.minute:02d}"
+    if end != start:
+        time += f"–{end.hour:02d}:{end.minute:02d}"
+    return day, time
+
+
 def short_planned(planned_at: str | None, now_msk: datetime) -> str:
     """Короткая подпись планового времени: «20.10 · 02:00», «20.10 · 03:00–04:00».
 
     Год показывается, только если он не текущий; нераспознанная старая
     строка возвращается как есть (без «T» ISO), пустая — пустой строкой.
     """
-    raw = (planned_at or "").strip()
-    window = _planned_window(raw)
-    if window is None:
-        return raw.replace("T", " ")
-    start, end, has_time = window
-    day = f"{start.day:02d}.{start.month:02d}"
-    if start.year != now_msk.year:
-        day += f".{start.year}"
-    if not has_time:
-        return day
-    label = f"{day} · {start.hour:02d}:{start.minute:02d}"
-    if end != start:
-        label += f"–{end.hour:02d}:{end.minute:02d}"
-    return label
+    parts = _planned_parts(planned_at, now_msk)
+    if parts is None:
+        return (planned_at or "").strip().replace("T", " ")
+    day, time = parts
+    return f"{day} · {time}" if time else day
 
 
 def planned_view(planned_at: str | None, now_msk: datetime) -> dict:
-    """Всё для чипа карточки: срочность, короткая подпись и относительное время."""
+    """Всё для ячейки времени карточки: срочность, короткая подпись, день и время
+    отдельно (первая колонка строки) и относительное время."""
     urgency = planned_urgency(planned_at, now_msk)
     window = _planned_window(planned_at)
     relative = ""
@@ -509,9 +519,12 @@ def planned_view(planned_at: str | None, now_msk: datetime) -> dict:
             relative = _("идёт сейчас") if has_time else _("сегодня")
         elif has_time:
             relative = relative_label(start, now_msk)
+    day, time = _planned_parts(planned_at, now_msk) or ("", "")
     return {
         "urgency": urgency,
         "label": short_planned(planned_at, now_msk),
+        "day": day,
+        "time": time,
         "relative": relative,
     }
 
@@ -575,6 +588,72 @@ def open_overview(now_msk: datetime | None = None) -> dict:
     return {"open": len(tickets), "overdue": overdue, "next_due": next_due}
 
 
+HOME_BOARD_LIMIT = 6
+
+
+def home_board(now_msk: datetime | None = None, limit: int = HOME_BOARD_LIMIT) -> dict:
+    """Табло главной («Сводка смены»): ближайшие открытые заявки с плановым временем.
+
+    rows — до limit строк по началу планового времени (просроченные выходят
+    первыми): {ticket, time, state, urgency}; time — «10:30», «10:30–12:00» или
+    день «24.10» для заявок без времени суток; state — «Просрочено · 42 мин назад»,
+    «через 48 мин» (ближайшие сутки) или день («Сегодня», «Завтра», «26 октября»).
+    soon_count — открытых в ближайшие 24 часа, none_count — без планового времени,
+    more — сколько заявок со временем не поместилось в табло.
+    """
+    now = now_msk or msk_now()
+    timed: list[tuple[datetime, int, Ticket]] = []
+    none_count = 0
+    for ticket in open_tickets():
+        window = _planned_window(ticket.planned_at)
+        if window is None:
+            none_count += 1
+        else:
+            timed.append((window[0], ticket.number, ticket))
+    timed.sort(key=lambda item: (item[0], item[1]))
+    rows: list[dict] = []
+    soon_count = 0
+    for start, _number, ticket in timed:
+        view = planned_view(ticket.planned_at, now)
+        urgency = view["urgency"]
+        if urgency == "soon":
+            soon_count += 1
+        if len(rows) >= limit:
+            continue
+        if urgency == "overdue":
+            state = _("Просрочено · {ago}", ago=view["relative"])
+        elif urgency == "soon":
+            state = view["relative"]
+        else:
+            state = planned_day_label(start.date(), now)
+        rows.append({
+            "ticket": ticket,
+            "time": view["time"] or view["day"],
+            "state": state,
+            "urgency": urgency,
+        })
+    return {
+        "rows": rows,
+        "soon_count": soon_count,
+        "none_count": none_count,
+        "more": max(0, len(timed) - limit),
+    }
+
+
+WEEKDAYS_RU = (
+    "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье",
+)
+WEEKDAYS_EN = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+
+def home_now_parts(now_msk: datetime | None = None) -> tuple[str, str]:
+    """Строка даты над «Сводкой смены»: («Пятница, 24 октября», «09:42»); время по Москве,
+    в браузере оно тикает (data-clock-tz="Europe/Moscow")."""
+    now = now_msk or msk_now()
+    weekday = (WEEKDAYS_EN if current_lang() == "en" else WEEKDAYS_RU)[now.weekday()]
+    return f"{weekday}, {_day_text(now.date(), now)}", f"{now:%H:%M}"
+
+
 MONTHS_GENITIVE = (
     "января", "февраля", "марта", "апреля", "мая", "июня",
     "июля", "августа", "сентября", "октября", "ноября", "декабря",
@@ -585,19 +664,37 @@ MONTHS_EN = (
 )
 
 
+def _day_text(day, now_msk: datetime) -> str:
+    """«19 октября» / «October 19»; год — только если не текущий."""
+    if current_lang() == "en":
+        text = f"{MONTHS_EN[day.month - 1]} {day.day}"
+        if day.year != now_msk.year:
+            text += f", {day.year}"
+        return text
+    text = f"{day.day} {MONTHS_GENITIVE[day.month - 1]}"
+    if day.year != now_msk.year:
+        text += f" {day.year}"
+    return text
+
+
+def planned_day_label(day, now_msk: datetime) -> str:
+    """День планового времени для табло: «Сегодня», «Завтра», «Вчера» или «26 октября»."""
+    delta = (day - now_msk.date()).days
+    if delta == 0:
+        return _("Сегодня")
+    if delta == 1:
+        return _("Завтра")
+    if delta == -1:
+        return _("Вчера")
+    return _day_text(day, now_msk)
+
+
 def closed_day_label(closed_at: datetime | None, now_msk: datetime) -> str:
     """Заголовок группы истории по МСК-дню закрытия: «Сегодня, 19 октября»."""
     if closed_at is None:
         return _("Без даты закрытия")
     day = (closed_at + timedelta(hours=3)).date()
-    if current_lang() == "en":
-        text = f"{MONTHS_EN[day.month - 1]} {day.day}"
-        if day.year != now_msk.year:
-            text += f", {day.year}"
-    else:
-        text = f"{day.day} {MONTHS_GENITIVE[day.month - 1]}"
-        if day.year != now_msk.year:
-            text += f" {day.year}"
+    text = _day_text(day, now_msk)
     delta = (now_msk.date() - day).days
     if delta == 0:
         return _("Сегодня, {day}", day=text)

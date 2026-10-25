@@ -121,11 +121,18 @@ def test_open_list_groups_and_home_counters(client, ui, session):
     page = client.get("/tickets?status=open").text
     assert page.index("Просрочено · 1") < page.index("Ближайшие 24 часа · 1")
     assert "Без срока · 1" in page
-    assert "chip-overdue" in page and "stripe-overdue" in page
+    assert "stripe-overdue" in page and 'class="rail rail-overdue"' in page
+    assert 'class="rail rail-none"' in page
+    assert 'aria-label="без планового времени">——<' in page, "без срока — прочерк в колонке времени"
 
     home = client.get("/").text
-    assert 'title="Просрочено">1<span class="menu-hide-sm"> просроч.' in home
-    assert "Ближайшая: №11" in home
+    assert "Сводка смены" in home
+    # табло: просроченная первой, затем ближайшая; без срока в табло нет, но посчитана
+    assert home.index("№10") < home.index("№11")
+    assert "board-overdue" in home and "Просрочено · " in home
+    assert "№12" not in home.split('class="home-cards"')[0]
+    assert "Ещё 1 открытых без планового времени" in home
+    assert "1 просрочено" in home and "1 в ближайшие сутки" in home and "1 без времени" in home
 
 
 def test_close_redirects_with_confirmation(client, ui, session):

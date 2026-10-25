@@ -1,5 +1,6 @@
 /* Поведение страниц панели без инлайн-обработчиков (CSP script-src 'self').
-   Все обработчики делегированные: работают и для контента, подменённого HTMX. */
+   Все обработчики делегированные: работают и для контента, подменённого HTMX.
+   Внизу — часы шапки: [data-clock-tz] тикают раз в минуту. */
 (function () {
     'use strict';
 
@@ -235,5 +236,48 @@
         document.addEventListener('DOMContentLoaded', initPlannedWidgets);
     } else {
         initPlannedWidgets();
+    }
+
+    /* Часы шапки: [data-clock-tz="local"] — время устройства, иначе зона IANA из настройки.
+       Формат ЧЧ:ММ на языке страницы (Intl, летнее время считает браузер), обновление по
+       границе минуты. Если пояс устройства совпадает с настроенным, первые часы скрываются:
+       два одинаковых времени рядом только путают. */
+    function clockText(zone) {
+        var options = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' };
+        if (zone !== 'local') {
+            options.timeZone = zone;
+        }
+        try {
+            return new Intl.DateTimeFormat(RU ? 'ru-RU' : 'en-GB', options).format(new Date());
+        } catch (error) {
+            return '--:--';
+        }
+    }
+
+    function tickClocks() {
+        document.querySelectorAll('[data-clock-tz]').forEach(function (element) {
+            element.textContent = clockText(element.getAttribute('data-clock-tz'));
+        });
+    }
+
+    if (document.querySelector('[data-clock-tz]')) {
+        var deviceZone = '';
+        try {
+            deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (error) {
+            deviceZone = '';
+        }
+        document.querySelectorAll('[data-clock-local]').forEach(function (element) {
+            if (deviceZone && element.getAttribute('data-clock-zone') === deviceZone) {
+                element.hidden = true;
+            } else if (deviceZone) {
+                element.setAttribute('title', element.getAttribute('title') + ' · ' + deviceZone);
+            }
+        });
+        tickClocks();
+        window.setTimeout(function () {
+            tickClocks();
+            window.setInterval(tickClocks, 60000);
+        }, 60000 - (Date.now() % 60000) + 250);
     }
 })();

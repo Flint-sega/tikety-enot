@@ -114,6 +114,19 @@ def test_personal_appearance_is_per_user(client, ui, session):
     assert _attrs(other.get("/tickets").text) == ("classic", "round", "square")
 
 
+def test_profile_offers_tablo_and_applies_it(client, ui, session):
+    make_user(session, "TEST-op")
+    login(client, "TEST-op")
+    html = client.get("/profile").text
+    assert 'value="tablo"' in html and "swatch-tablo" in html and "Табло" in html
+    response = client.post(
+        "/profile/appearance", data={"theme": "tablo"}, follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert _attrs(client.get("/tickets").text)[0] == "tablo"
+    assert _attrs(client.get("/").text)[0] == "tablo"
+
+
 def test_theme_toggle_fetch_saves_theme_only(client, ui, session):
     make_user(session, "TEST-op")
     login(client, "TEST-op")

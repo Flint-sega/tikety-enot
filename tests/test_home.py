@@ -14,7 +14,7 @@ def test_home_menu_buttons(client, ui, session):
     client.post("/login", data={"login": "operator-home", "password": "TEST-pass"})
     response = client.get("/")
     assert response.status_code == 200
-    assert "Система управления заявками" in response.text
+    assert "Сводка смены" in response.text
     assert "Открытые заявки" in response.text
     assert "История закрытых" in response.text
     assert "Создать заявку" in response.text
@@ -30,5 +30,5 @@ def test_tickets_list_on_own_path(client, ui, session):
     response = client.get("/tickets?status=open")
     assert response.status_code == 200
     assert "Открытые" in response.text
-    assert "Система управления заявками" not in response.text
+    assert "Сводка смены" not in response.text
     assert "На главную" in response.text

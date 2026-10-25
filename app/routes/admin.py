@@ -58,6 +58,7 @@ from app.sync import (
     DEFAULT_CLOSED_STATUSES,
     SETTING_BUTTON_SHAPE,
     SETTING_CARD_SHAPE,
+    SETTING_CLOCK_ZONE,
     SETTING_DEFAULT_THEME,
     SETTING_HISTORY_GROUPED,
     SETTING_PERSONAL_APPEARANCE,
@@ -72,8 +73,11 @@ from app.sync import (
     SETTING_USEDESK_STATUS_CLOSED,
     TELEGRAM_BASE_URL,
     USEDESK_BASE_URL,
+    VALID_CLOCK_ZONES,
     VALID_SHAPES,
     VALID_THEMES,
+    clock_zone,
+    clock_zone_choices,
     default_theme,
     get_setting,
     reset_clients,
@@ -254,6 +258,8 @@ def _admin_context(**extra: object) -> dict:
         "theme_default": default_theme(),
         "language_default": default_language(),
         "language_choices": [(code, LANG_LABELS[code]) for code in LANGS],
+        "clock_zone_default": clock_zone(),
+        "clock_zone_choices": clock_zone_choices(),
         "sync": sync_status(),
         "templates_on": get_setting(SETTING_TEMPLATES_ENABLED, "0") == "1",
         "usedesk_token_mask": _mask_secret(usedesk_api_token()),
@@ -270,6 +276,7 @@ def _admin_context(**extra: object) -> dict:
         "theme_error": None,
         "shape_error": None,
         "language_error": None,
+        "clock_error": None,
         "tokens_error": None,
         "usedesk_result": None,
         "telegram_result": None,
@@ -326,7 +333,7 @@ async def save_default_theme(request: Request):
     if value not in VALID_THEMES:
         return _admin_page(
             request,
-            theme_error=_("Неизвестная тема: выберите «Ночь» или «Классика»"),
+            theme_error=_("Неизвестная тема: выберите «Ночь», «Классика» или «Табло»"),
         )
     set_setting(SETTING_DEFAULT_THEME, value)
     return RedirectResponse("/admin", status_code=303)
@@ -345,6 +352,22 @@ async def save_default_language(request: Request):
             request, language_error=_("Неизвестный язык: выберите русский или английский")
         )
     set_setting(SETTING_DEFAULT_LANGUAGE, value)
+    return RedirectResponse("/admin", status_code=303)
+
+
+# --- пояс вторых часов в шапке: только показ, плановое время остаётся по Москве ---
+
+
+@router.post("/admin/settings/clock-zone", dependencies=[require("admin")])
+async def save_clock_zone(request: Request):
+    """Пояс вторых часов для всех (профиль может переопределить); значение — из CLOCK_ZONES."""
+    form = await parse_form(request)
+    value = form.get("value", "").strip()
+    if value not in VALID_CLOCK_ZONES:
+        return _admin_page(
+            request, clock_error=_("Неизвестный часовой пояс: выберите город из списка")
+        )
+    set_setting(SETTING_CLOCK_ZONE, value)
     return RedirectResponse("/admin", status_code=303)
 
 

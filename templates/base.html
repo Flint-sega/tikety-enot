@@ -7,9 +7,9 @@
     <link rel="icon" href="/static/favicon.png?v=2" type="image/png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
     {% if csrf_token %}<meta name="csrf-token" content="{{ csrf_token }}">{% endif %}
-    <link rel="stylesheet" href="/static/tailwind.css?v=53">
-    <script src="/static/theme.js?v=13" defer></script>
-    <script src="/static/app.js?v=5" defer></script>
+    <link rel="stylesheet" href="/static/tailwind.css?v=56">
+    <script src="/static/theme.js?v=14" defer></script>
+    <script src="/static/app.js?v=6" defer></script>
     <script src="/static/htmx.min.js?v=1" defer></script>
     {% block head_extra %}{% endblock %}
 </head>
@@ -34,6 +34,16 @@
             {% endfor %}
         </nav>
         <span class="topbar-spacer"></span>
+        <span class="clocks" aria-label="{{ _("Часы") }}">
+            <span class="clock" data-clock-local data-clock-zone="{{ page_clock_zone }}" title="{{ _("Ваше время по часам устройства") }}">
+                <span class="clock-time" data-clock-tz="local">--:--</span>
+                <span class="clock-label">{{ _("у вас") }}</span>
+            </span>
+            <span class="clock" title="{{ page_clock_zone }}">
+                <span class="clock-time" data-clock-tz="{{ page_clock_zone }}">{{ page_clock_time }}</span>
+                <span class="clock-label">{{ page_clock_label }}</span>
+            </span>
+        </span>
         <a href="/tickets/new" class="btn btn-purple btn-sm" data-hotkey-new title="{{ _("Создать заявку (N)") }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
             {{ _("Новая") }}

@@ -52,15 +52,17 @@
 <div id="ticket-list">
 {% if groups %}
     {% for group in groups %}
-    <h2 class="group-title group-{{ group.key }}">
-        {% if group.key == 'overdue' %}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4 L21 19 H3 Z" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.5" stroke-linecap="round"/></svg>
-        {% elif group.key == 'soon' %}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5" stroke-linecap="round"/></svg>
-        {% endif %}
-        {{ group.title }} · {{ group.cards|length }}
-    </h2>
-    {% for card in group.cards %}{% include "tickets/_card.html" %}{% endfor %}
+    <section class="rail rail-{{ group.key }}" aria-labelledby="group-{{ group.key }}">
+        <h2 class="group-title group-{{ group.key }}" id="group-{{ group.key }}">
+            {% if group.key == 'overdue' %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4 L21 19 H3 Z" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.5" stroke-linecap="round"/></svg>
+            {% elif group.key == 'soon' %}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5" stroke-linecap="round"/></svg>
+            {% endif %}
+            {{ group.title }} · {{ group.cards|length }}
+        </h2>
+        {% for card in group.cards %}{% include "tickets/_card.html" %}{% endfor %}
+    </section>
     {% endfor %}
 {% elif cards %}
     <div class="mt-4">

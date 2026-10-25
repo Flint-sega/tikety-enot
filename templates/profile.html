@@ -16,14 +16,14 @@
     <section class="page-panel" id="appearance">
         <h2 class="text-lg font-semibold">{{ _("Внешний вид") }}</h2>
         {% if personal_allowed %}
-        <p class="hint mt-1">{{ _("Только для вас и на любом устройстве: тема и форма плашек и кнопок.") }}</p>
+        <p class="hint mt-1">{{ _("Только для вас и на любом устройстве: тема, форма плашек и кнопок, пояс вторых часов.") }}</p>
         {% if appearance_error %}<p class="alert mt-3">{{ appearance_error }}</p>{% endif %}
         <form method="post" action="/profile/appearance" class="mt-4 space-y-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <fieldset>
                 <legend class="lbl">{{ _("Тема") }}</legend>
                 <div class="choice-row">
-                    {% for value, label in [('new', _("Ночь")), ('classic', _("Классика"))] %}
+                    {% for value, label in [('new', _("Ночь")), ('classic', _("Классика")), ('tablo', _("Табло"))] %}
                     <label class="choice">
                         <input type="radio" name="theme" value="{{ value }}"{% if page_theme == value %} checked{% endif %}>
                         <span class="swatch swatch-{{ value }}" aria-hidden="true"></span>
@@ -48,6 +48,15 @@
                     {% endfor %}
                 </div>
             </fieldset>
+            <div>
+                <label for="profile-clock-zone" class="lbl">{{ _("Вторые часы в шапке") }}</label>
+                <select id="profile-clock-zone" name="clock_zone" class="field w-64">
+                    {% for zone, label in clock_zone_choices %}
+                    <option value="{{ zone }}"{% if page_clock_zone == zone %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <p class="hint mt-1">{{ _("Первые часы всегда показывают время вашего устройства. Плановое время заявок остаётся по Москве.") }}</p>
+            </div>
             <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" class="btn btn-blue">{{ _("Сохранить вид") }}</button>
                 <button type="submit" name="reset" value="1" class="btn btn-ghost">{{ _("Как у всех") }}</button>

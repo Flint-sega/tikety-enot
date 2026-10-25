@@ -49,6 +49,8 @@ from app.tickets import (
     find_recent_duplicate,
     format_msk,
     group_open_tickets,
+    home_board,
+    home_now_parts,
     list_tickets,
     list_tickets_by_planned,
     msk_now,
@@ -276,12 +278,23 @@ def home_page(
     request: Request,
     user: User | None = Depends(current_user_dependency),
 ):
-    """Главная-меню: три кнопки разделов со счётчиками (открыто, просрочено,
-    закрыто сегодня) и ближайшая заявка; список живёт на /tickets."""
+    """Главная «Сводка смены»: табло ближайших заявок по плановому времени и три
+    плашки разделов со счётчиками (открыто, просрочено, закрыто сегодня);
+    список живёт на /tickets."""
+    now = msk_now()
+    now_date, now_time = home_now_parts(now)
     return templates.TemplateResponse(
         request,
         "home.html",
-        {"user": user, "overview": open_overview(), "closed_today": summary()["closed_today"]},
+        {
+            "user": user,
+            "tab": "home",
+            "overview": open_overview(now),
+            "board": home_board(now),
+            "summary": summary(),
+            "now_date": now_date,
+            "now_time": now_time,
+        },
     )
 
 

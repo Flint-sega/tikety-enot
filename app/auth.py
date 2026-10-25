@@ -59,13 +59,18 @@ class PanelTemplates(Jinja2Templates):
     Туда же подставляется внешний вид страницы page_theme/page_cards/page_buttons:
     личный вид пользователя из контекста (user), если админ это разрешил, иначе
     общий из админки; personal_allowed — показывать ли переключатель темы.
+    page_clock_zone/page_clock_label/page_clock_time — вторые часы шапки (пояс админа
+    или личный), начальное «ЧЧ:ММ» считает сервер, дальше тикает app.js.
     theme_default/card_shape/button_shape — общие значения админа (селекторы
     в админке); страница, передавшая своё значение, важнее (setdefault).
     """
 
     def TemplateResponse(self, request: Request, name: str, context=None, *args, **kwargs):
         from app.sync import (  # локально: цикл импортов
+            SETTING_CLOCK_ZONE,
             appearance_for,
+            clock_time,
+            clock_zone_label,
             global_appearance,
             personal_appearance_allowed,
         )
@@ -82,6 +87,10 @@ class PanelTemplates(Jinja2Templates):
         merged.setdefault("page_theme", page["theme"])
         merged.setdefault("page_cards", page["card_shape"])
         merged.setdefault("page_buttons", page["button_shape"])
+        zone = page[SETTING_CLOCK_ZONE]
+        merged.setdefault("page_clock_zone", zone)
+        merged.setdefault("page_clock_label", clock_zone_label(zone))
+        merged.setdefault("page_clock_time", clock_time(zone))
         merged.setdefault(
             "personal_allowed", bool(merged.get("user")) and personal_appearance_allowed()
         )

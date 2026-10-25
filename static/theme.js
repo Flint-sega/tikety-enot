@@ -1,13 +1,15 @@
-/* Темы панели: «Ночь» (new — джунгли, енот, бирюзовый акцент) и «Классика»
-   (classic — светлый строгий вид).
+/* Темы панели: «Ночь» (new — джунгли, енот, бирюзовый акцент), «Классика»
+   (classic — светлый строгий вид) и «Табло» (tablo — светлый рабочий вид, индиго).
    Тему рендерит сервер из личного профиля (data-theme на <html>), поэтому мигания нет.
    Клик по #theme-toggle (он есть, только если админ разрешил личный вид) сразу
    меняет атрибут и сохраняет выбор в профиль: POST /profile/appearance с CSRF-заголовком. */
 (function () {
     'use strict';
-    var ORDER = ['new', 'classic'];
+    var ORDER = ['new', 'classic', 'tablo'];
     var EN = document.documentElement.lang === 'en';
-    var LABELS = EN ? { new: 'Night', classic: 'Classic' } : { new: 'Ночь', classic: 'Классика' };
+    var LABELS = EN
+        ? { new: 'Night', classic: 'Classic', tablo: 'Board' }
+        : { new: 'Ночь', classic: 'Классика', tablo: 'Табло' };
 
     function current() {
         var value = document.documentElement.getAttribute('data-theme');
